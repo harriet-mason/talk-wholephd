@@ -350,6 +350,7 @@ We can look at all those terms we had earlier, and understand how they fit in wi
 ## What does this mean?
 ::: {.incremental}
 Uncertainty visualisation is the visualisation of random matricies
+
 - Earlier in our analysis we performed *inference* and created *estimates*
 - Estimates are best repesented as *probability distributions*
 - A table of probability distributions is a *random matrix*
@@ -385,15 +386,32 @@ clean_walk|>
 
 # Part 2: What is the goal of uncertainty visualisation?
 
+
+## What is the goal of uncertainty visualisation?
+
+::::: columns
+::: {.column width="40%"}
+- We want to visualise uncertainty in a way that is statistically sensible
+- Statistical properties are what differentiate us from the animals
+
+:::
+
+::: {.column width="60%"}
+![](images/fooldog.jpeg){fig-align="center"}
+:::
+:::::
+
+
+
 ## Start smaller
 ::::: columns
 ::: {.column width="50%"}
 
 :::: {.incremental}
 What is the goal of visualisation?
-- To accurately map data to visual representation
-- I really like the way the plotscaper paper made this point
 
+- To accurately map data to visual representation
+- The `plotscaper` paper made this point really well
 :::: 
 
 :::
@@ -405,7 +423,8 @@ What is the goal of visualisation?
 :::
 :::::
 
-## Maintain the connection between data and visualisation
+## A graphic is a map between data visualisation and visual representation
+Maintain the connection between data and visualisation
 
 ![](adam2.jpg){fig-align="center"}
 
@@ -415,201 +434,154 @@ What is the goal of visualisation?
   - Distance in the data space should equate to distance in the visual space
   - e.g. value extraction studies
 - Distance in the visual space?
-  - Visual distinguishability
-  - 
+  - Visual distinguishability (e.g. lineup protocol)
 :::: 
 
+## What is the lineup protocol?
+![](images/lineup.jpeg){fig-align="center"}
 
-
-## Section Overview
-
-  - We consider it a problem when visualisations diverge from their data space & call it a bias' (like the sine illustion)
-- Distance in the visual space translates to visual distinguishability. 
-  - e.g. lineup protocol is a malhalobis distance
-- Then what is uncertainty visualisation? 
-  - Can think of as a confidence interval
-  - Jump to lineup protocol
-
-## Density visualisations
-When we have distributional inputs, we typically default to a density function
-
-```{r}
-#| fig-align: center
-
-set.seed(1)
-density_data <- data.frame(xmean = rnorm(15, 163, 7),
-                           xse = rexp(15,0.5)) |>
-  mutate(xdist = distributional::dist_normal(xmean, xse))
-tsize = 12
-
-d2 <- ggplot(data = density_data) +
-  stat_slab(aes(xdist = xdist), colour = "black", fill=NA,
-            linewidth = 0.5) +
-  xlab("Height") + ylab("density") +
-  ggtitle("A density plot of 15 distributions") +
-  theme(plot.title = element_text(size = tsize))
-
-d2 
-```
-
-## Random inputs, not density plots
-I want an uncertain version of MY walktober visualisations!
-
-```{r}
-#| fig-align: center
-
-p1 + p2
-```
-
-
-
-## Don't want to just "show uncertainty"
+## Hypothesis test = Malhalobis distance{.smaller}
 
 ::::: columns
 ::: {.column width="40%"}
-- I want to do it in a way that is statistically sensible
-- Statistical properties are what differentiate us from the animals
+
+- Think of visual difference (or discernability) as a distance. 
+  - If you can visually tell the difference between your plot, and a null plot, they are different.
+  - This is a visual version of Malhalobis distance
 
 :::
 
 ::: {.column width="60%"}
-![](images/fooldog.jpeg){fig-align="center"}
+
+![](images/distance.jpeg){fig-align="center"}
+
 :::
 :::::
 
-
-## What statistical properties?
-Visualisations are functions
+## What is visualisation?
+A continuous functions that maps distance in our data to visual distinguishability
 
 ![](images/visualfunction.jpeg){fig-align="center"}
 
 
-## What statistical properties?
-... that are being applied to a random variable
+## What is uncertainty visualisation?
+That same visual function with a *random matrix input*
 
 ![](images/replace.jpeg){fig-align="center"}
 
 
-## What statistical properties?
-So they should follow continuous mapping theorem
+## What is uncertainty visualisation?
+
 ![](images/visualcmt.jpeg){fig-align="center"}
 
-## A density plot under this system
+## Achieve with samples {.smaller}
+  
+::::: columns
+::: {.column width="50%"}
+::: {.incremental}
+- Represent as a set of samples from the random matrix
+- Only distribution representation that can be subbed into any `ggplot2` function
+  - Mean/median brings us back to the original problem
+  - PDF leads to the geom_rug problem
+  - Quantiles need an ordering (problem in figure)
+  
+::: 
+
+:::
+
+::: {.column width="50%"}
 
 ```{r}
-#| label: fig-dist-converge
 #| fig-align: center
+#| fig-height: 6
+#| fig-width: 6
 
-set.seed(1)
-density_data <- data.frame(xmean = rnorm(15, 163, 7),
-                           xse1 = rexp(15,0.5)) |>
-  mutate(xse2 = 0.3*xse1, 
-         xse3 = 0.05*xse1)
-tsize = 12
-p1 <- ggplot(data = density_data) + 
-  geom_density_sample(aes(x=dist_normal(xmean, xse1)), times=100, 
-                      linewidth=0.1) +
-  scale_linewidth(range = c(0.1, 0.1)) +
-  xlab("Height") +
-  ggtitle(" ") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
+# Random intercept
+tsize=20
+# Generate multivariate data
+set.seed(112)
+dist <- dist_multivariate_normal(mu = list(c(0,0)), 
+                                 #sigma = list(matrix(c(1,0,0,1), ncol=2)))
+                                 sigma = list(matrix(c(1,-0.8,-0.8,1), ncol=2)))
+dimnames(dist) <- c("x", "y")
 
-p2 <- ggplot(data = density_data) + 
-  geom_density_sample(aes(x=dist_normal(xmean, xse2)), times=100, 
-                      linewidth=0.1) +
-  scale_linewidth(range = c(0.1, 0.1)) +
-  xlab("Height") +
-  ggtitle("") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
+a <- quantile(dist, p = seq(0, 1, length.out = 100),
+              type = "marginal") 
+qdf <- tibble(x = unlist(a)[1:100],
+              y = unlist(a)[101:200]) |>
+  rownames_to_column() |>
+  mutate(rowname = as.numeric(rowname)) 
 
-p3 <- ggplot(data = density_data) + 
-  geom_density_sample(aes(x=dist_normal(xmean, xse3)), times=100, 
-                      linewidth=0.1) +
-  scale_linewidth(range = c(0.1, 0.1)) +
-  xlab("Height") +
-  ggtitle("") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
-
-p4 <- ggplot(data = density_data) + 
-  geom_density_sample(aes(x=dist_normal(xmean, 0))) +
-  scale_linewidth(range = c(0.1, 0.1)) +
-  xlab("Height") +
-  ggtitle("geom_density!") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
+b <- generate(dist, times = 100)
+sdf <- tibble(x = unlist(b)[1:100],
+              y = unlist(b)[101:200]) |>
+  rownames_to_column() |>
+  mutate(rowname = as.numeric(rowname),
+         distance = sqrt(x^2 + y^2),
+         rawdist = x + y)
 
 
-q1 <- ggplot(data = density_data) +
-  stat_slab(aes(xdist = dist_normal(xmean, xse1)), 
-            colour = "black", fill=NA,
-            linewidth = 0.5) +
-  xlab("Height") + ylab("density") +
-  ggtitle("") +  
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
+q1 <- qdf |>
+  ggplot() + 
+  geom_abline(aes(intercept = x, slope = 1, colour = x), 
+              alpha=0.7, linewidth=1.5) +
+  scale_colour_continuous_sequential(palette = "Batlow") +
+  scale_x_continuous_distribution(limits = c(-2,2)) +
+  scale_y_continuous_distribution(limits = c(-2,2)) +
+  ggtitle("a. quantile: intercept") 
 
-q2 <- ggplot(data = density_data) +
-  stat_slab(aes(xdist = dist_normal(xmean, xse2)), 
-            colour = "black", fill=NA,
-            linewidth = 0.5) +
-  xlab("Height") + ylab("density") +
-  ggtitle("") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
+q2 <- sdf |>
+  ggplot() + 
+  geom_abline(aes(intercept = x, slope = 1, colour = x), 
+              alpha=0.5, linewidth=1.5) +
+  scale_colour_continuous_sequential(palette = "Batlow") +
+  scale_x_continuous_distribution(limits = c(-2,2)) +
+  scale_y_continuous_distribution(limits = c(-2,2)) +
+  ggtitle("b. sample: intercept") 
 
-q3 <- ggplot(data = density_data) +
-  stat_slab(aes(xdist = dist_normal(xmean, xse3)), 
-            colour = "black", fill=NA,
-            linewidth = 0.5) +
-  xlab("Height") + ylab("density") +
-  ggtitle("") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
+q3 <- qdf |>
+  ggplot() + 
+  geom_abline(aes(intercept = x, slope = y, colour = rowname), 
+              alpha=0.7, linewidth=1.5) +
+  scale_colour_continuous_sequential(palette = "Batlow") +
+  scale_x_continuous_distribution(limits = c(-2,2)) +
+  scale_y_continuous_distribution(limits = c(-2,2)) +
+  ggtitle("c. quantile: intercept, slope") 
 
-q4 <- ggplot(data = density_data) +
-  stat_slab(aes(xdist = dist_normal(xmean, 0)), 
-            colour = "black", fill=NA,
-            linewidth = 0.5) +
-  xlab("Height") + ylab("density") +
-  ggtitle("geom_rug!") + 
-  theme_classic() +
-  theme(plot.title = element_text(size = tsize))
-
-pv <- ggplot() +
-  geom_segment(aes(x = 0, xend = 5, y = 1 ), arrow = arrow()) +
-  geom_text(aes(label = expression(sigma), x = -0.2, y = 1 ), size = 10) +
-  geom_text(aes(label = "0", x = 5.2, y = 1 ), size = 10) +
-  geom_text(aes(label = "as the variance approaches zero", x = 2.5, y = 1.1 ), size = 5) +
-  ylim(0.5,1.5) +
-  theme_void()
+q4 <- sdf |>
+  ggplot() + 
+  geom_abline(aes(intercept = x, slope = y, colour = rawdist), 
+              alpha=0.5, linewidth=1.5) +
+  scale_colour_continuous_sequential(palette = "Batlow") +
+  scale_x_continuous_distribution(limits = c(-2,2)) +
+  scale_y_continuous_distribution(limits = c(-2,2)) +
+  ggtitle("d. sample: intercept, slope") 
 
 
-pv / (p1 | p2 | p3 | p4 ) / (q1 | q2 | q3 | q4)
+q1 + q2 + q3 + q4 
 
 ```
+
+:::
+:::::
 
 
 # Part 3: What makes an effective uncertainty visualisation? 
 
-## How should the visualisation look?
-- Act as a “visual hypothesis test” or “statistical hedge” for any inference we make using the graphic. 
+## How well does this work?
+- Ideally, this all accumulates to the plots work as a “visual hypothesis test” or “statistical hedge” for any inference we make using the graphic. 
 - The purpose of a visualisation is to give a quick gist 
   - NO mental calculations.
-- Therefore, an effective uncertainty visualisation should not just “show” uncertainty; untrustworthy conclusions should not be visible.
-- We suggest calling this approach to uncertainty visualisation “signal modulation”
 
-## How should the visualisation look?
+## Signal modulation
 -   Statistical validity should translates to perceptual ease
     -   The higher the variance on an estimate, the harder that estimate is to extract from the plot
 
 ![](images/signoise.jpeg){fig-align="center"}
 
 
-## Am I bad at my job?
-- I've just kind of been going around and saying the pixel map works best for signal modulation 
+## Am I bad at my job?{.smaller}
+- I spent the middle two years of my PhD just kind of been going around and saying the pixel map works best for signal modulation 
 - My primary evidence being "bro look at it, we all have eyes"
 - Some people disagree with me?
 - Apparently I can't just say stuff without any evidence
@@ -617,60 +589,25 @@ pv / (p1 | p2 | p3 | p4 ) / (q1 | q2 | q3 | q4)
 # Wait is this even a testable hypothesis? 
 
 ## Should you start a perceptual experiment from scratch three months before your PhD submission deadline and also forget to tell your main advisor about it until you are like a month in? 
-- Sure, why not
+- Sure, why not (If you have Rachel and Alison's help)
 
 ## Well thankfully there is probably some existing evaluation approach you can use to test your hypothesis...
 - Nah
+- Wait what?
 
-## Wait what?
-- This underlying hypothesis is one of the core motivations for the literature
-- And yet, most evaluation methods seem to just kind of ignore it
+## Implicit vs Explicit testing
+- There are two ways to evaluate a plot [@Vanderplas2020]
 
-## Existing evaluations fall into three main categories
-1. Vibes: do you feel like this represents uncertainty? 
-2. Decision making: Would you rather invest in group A or B? Why?
-3. Value extraction: What is the mean of this distribution? What is the variance?
-  
-## Can I use these?
-- No
-1. I don't care about vibes
-2. Decision making is just value extraction but with extra steps
-3. Value extraction could work, but there are some issues...
-
-## Whats wrong with value extraction?
-1. They mess with the role of signal and noise in the plot 
-2. They require interpretation, which violate the Ratatouille rule
-  
-
-## Problem 1 - The signal vs noise 
-- The role of signal and noise is not set in stone and can change during our analysis
-- Signal is just question we are trying to answer, noise is the stuff that obfuscates that signal
-- Changing the question changes the roles of signal and noise
-
-## Ideal statistical inference workflow
-
-![](images/stacker1.jpeg){fig-align="center"}
-
-## Changing the question
-
-![](images/stacker2.jpeg){fig-align="center"}
+  - Explicit: "What is the spatial correlation in this plot?"
+  - Implicit: "Which is the odd one out"
 
 
+## Prefer to use implicit
+There are two issues with using explicit testing
+1. Implicit tests are more aligned with EDA
+2. The Ratatouille rule
 
-
-
-## Specifically for uncertainty visualisation
-
-![](images/angeldevil1.jpeg){fig-align="center"}
-
-## Specifically for uncertainty visualisation
-
-![](images/angeldevil2.jpeg){fig-align="center"}
-
-<!-- - Therefore, if we make a plot with the intention of uncertainty acting as noise, but then ask a direct question such as "What is the variance?", the variance has become signal. -->
-<!-- - We are not evaluating uncertainty as noise. -->
-
-## 2) Problem 2 - The Ratatouille rule{.smaller}
+## The Ratatouille rule{.smaller}
 
 ::::: columns
 ::: {.column width="65%"}
@@ -689,121 +626,11 @@ pv / (p1 | p2 | p3 | p4 ) / (q1 | q2 | q3 | q4)
 :::::
 
 
-## OK lets try a different approach
-- If we don't ask direct questions, what can we do?
-- Technically the lineup protocol avoids these problems
-  - Similar motivations to uncertainty visualisation
-  - Parallel to hypothesis testing
-
-## What is it?
-![](images/lineup.jpeg){fig-align="center"}
-
-## Lineup is a hypothesis test{.smaller}
-
-::::: columns
-::: {.column width="40%"}
-
-- Think of visual difference (or discernability) as a distance. 
-  - If you can visually tell the difference between your plot, and a null plot, they are different.
-  - This is a visual version of Malhalobis distance
-
-:::
-
-::: {.column width="60%"}
-
-![](images/distance.jpeg){fig-align="center"}
-
-:::
-:::::
-
-
-## Lineups for plot evaluation{.smaller}
-
-::::: columns
-::: {.column width="40%"}
-
-- Lineups useful for evaluating plots 
-  - Reminder, this is what we are trying to do here.
-  - Using the lineup protocol, different plot designs are different tests
-  - Compare their power
-
-
-
-:::
-
-::: {.column width="60%"}
-
-![](images/powercurve.jpeg){fig-align="center"}
-
-:::
-:::::
-
-## OK this is perfect! Right? 
-  
-  
-::::: columns
-::: {.column width="50%"}
-
-- But there is one little thing...
-  - I am kept awake at night by the PCA example from Chowdhury et al.
-  - I can SEE the pattern!
-
-
-:::
-
-::: {.column width="50%"}
-
-![](images/pcaeg.jpeg){fig-align="center"}
-
-:::
-:::::
-
-
-## Using the lineup framework
-![](images/uncertaintyvis.jpeg){fig-align="center"}
-
-
-## Comapring on the PCA example
-![](images/hypsource.jpeg){fig-align="center"}
-
-## Hypothesis tests and confidence intervals
-Unlike a lineup, uncertainty visualisation requires us to know what our null is. A pattern is subjective.
-
-![](images/hypvsci.jpeg){fig-align="center"}
-
-## In plain English{.smaller}
-- Uncertainty visualisation requires us to have a visual hypothesis in our brain
-- Asking a direct question is a fundamental requirement of the method
-  - Therefore we need to
-    - 1) Set up the data so that people can't use the variance as a signal to answer it
-    - 2) Have the question require zero statistical interpretation
-    - 3) Analyse it the same way we would with a lineup protocol
-
-## We need an evaluation method that...
-- Can measure a latent variable we cannot directly
-- Could be understood by a child 
-- Specifically tests if a pattern is visible 
-
-## ... Wait 
-  
-::::: columns
-::: {.column width="60%"}
-
-- Thats just an Ishihara colourblind test
-- Usually the latent variable is colour vision deficiency
-- In this experiment we will make the latent variable uncertainty.
-- OK this will work.
-
-
-:::
-
-::: {.column width="40%"}
-
-![](images/ishi.png){fig-align="center"}
-
-:::
-:::::
-
+## So, the lineup protocol?
+- Remember the two sources of uncertainty in a graphic?
+  1. The data itself (i.e. we are visualising estimates) 
+  2. The conclusions we draw from the plot (i.e. visual inference)
+- Visual inference tests the second. We only have the first.
 
 
 ## Aside: pour one out for Alison and Rachel
@@ -843,6 +670,51 @@ Yup I thought so. I told them you are just like that.
 :::
 
 
+## We need an explicit evaluation method that...
+- Can measure a latent variable (uncertainty)
+- Could be understood by a child 
+- Specifically tests if a pattern is visible 
+
+## ... Wait 
+  
+::::: columns
+::: {.column width="60%"}
+
+- Thats just an Ishihara colourblind test
+- Usually the latent variable is colour vision deficiency
+- In this experiment we will make the latent variable uncertainty.
+- OK this will work.
+
+
+:::
+
+::: {.column width="40%"}
+
+![](images/ishi.png){fig-align="center"}
+
+:::
+:::::
+
+
+
+
+## Will still use the power curve analysis{.smaller}
+
+::::: columns
+::: {.column width="40%"}
+
+- Lineups can be compared to power curves
+- We can do the same here 
+:::
+
+::: {.column width="60%"}
+
+![](images/powercurve.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
 # Doing The Experiment
 
 ## The stimuli
@@ -872,13 +744,6 @@ Grid of distance and variance of estimates
 :::
 :::::
 
-
-
-## The evaluation
-- We are going to use the lineup approach to evaluate the plots
-  1. Get significance level (type I error) of each plot type 
-  2. Set the significance level and calculate the power curve 
-- We want a visualisation to map as closely to the theoretical power curve as possible.
 
 ## Our hypothesis?
 - i.e. stuff I have been saying with no evidence
@@ -1194,104 +1059,9 @@ ggplot(random_data) +
 ![](images/simpleproblem.jpeg){fig-align="center"}
 
 
-## ... that we make even simpler {.smaller}
-  
-::::: columns
-::: {.column width="50%"}
-::: {.incremental}
-- Represent as a set of samples from the random matrix
-- Only distribution representation that can be subbed into any `ggplot2` function
-  - Mean/median brings us back to the original problem
-  - PDF leads to the geom_rug problem
-  - Quantiles need an ordering (problem in figure)
-  
-::: 
-
-:::
-
-::: {.column width="50%"}
-
-```{r}
-#| fig-align: center
-#| fig-height: 6
-#| fig-width: 6
-
-# Random intercept
-
-# Generate multivariate data
-set.seed(112)
-dist <- dist_multivariate_normal(mu = list(c(0,0)), 
-                                 #sigma = list(matrix(c(1,0,0,1), ncol=2)))
-                                 sigma = list(matrix(c(1,-0.8,-0.8,1), ncol=2)))
-dimnames(dist) <- c("x", "y")
-
-a <- quantile(dist, p = seq(0, 1, length.out = 100),
-              type = "marginal") 
-qdf <- tibble(x = unlist(a)[1:100],
-              y = unlist(a)[101:200]) |>
-  rownames_to_column() |>
-  mutate(rowname = as.numeric(rowname)) 
-
-b <- generate(dist, times = 100)
-sdf <- tibble(x = unlist(b)[1:100],
-              y = unlist(b)[101:200]) |>
-  rownames_to_column() |>
-  mutate(rowname = as.numeric(rowname),
-         distance = sqrt(x^2 + y^2),
-         rawdist = x + y)
 
 
-q1 <- qdf |>
-  ggplot() + 
-  geom_abline(aes(intercept = x, slope = 1, colour = x), 
-              alpha=0.7, linewidth=1.5) +
-  scale_colour_continuous_sequential(palette = "Batlow") +
-  scale_x_continuous_distribution(limits = c(-2,2)) +
-  scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("a. quantile: intercept") +
-  theme(legend.position="none", plot.title = element_text(size = tsize))
-
-q2 <- sdf |>
-  ggplot() + 
-  geom_abline(aes(intercept = x, slope = 1, colour = x), 
-              alpha=0.5, linewidth=1.5) +
-  scale_colour_continuous_sequential(palette = "Batlow") +
-  scale_x_continuous_distribution(limits = c(-2,2)) +
-  scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("b. sample: intercept") +
-  theme(legend.position="none", plot.title = element_text(size = tsize))
-
-q3 <- qdf |>
-  ggplot() + 
-  geom_abline(aes(intercept = x, slope = y, colour = rowname), 
-              alpha=0.7, linewidth=1.5) +
-  scale_colour_continuous_sequential(palette = "Batlow") +
-  scale_x_continuous_distribution(limits = c(-2,2)) +
-  scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("c. quantile: intercept, slope") +
-  theme(legend.position="none", plot.title = element_text(size = tsize))
-
-q4 <- sdf |>
-  ggplot() + 
-  geom_abline(aes(intercept = x, slope = y, colour = rawdist), 
-              alpha=0.5, linewidth=1.5) +
-  scale_colour_continuous_sequential(palette = "Batlow") +
-  scale_x_continuous_distribution(limits = c(-2,2)) +
-  scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("d. sample: intercept, slope") +
-  theme(legend.position="none", plot.title = element_text(size = tsize))
-
-
-q1 + q2 + q3 + q4 
-
-```
-
-:::
-:::::
-
-
-
-## ... and even simpler again
+## ... that we make even simpler
 - Start off with a choropleth map, `geom_sf`
 
 ```{r}
