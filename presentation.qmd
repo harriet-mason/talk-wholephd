@@ -185,7 +185,7 @@ p1 + p2
 This is going to be the focus of todays talk. We are going to go over:
 
 - Part 1: What is uncertainty?
-- Part 2: What is an uncertainty visualisation?
+- Part 2: What is the goal of uncertainty visualisation?
 - Part 3: What makes an effective uncertainty visualisation? 
 - Part 4: Making uncertainty visualisations in `ggdibbler`
 
@@ -237,7 +237,7 @@ ggplot(df_words,
   theme_minimal()
 ```
 
-## These words are all related 
+## These words are all related {.smaller}
 - Uncertainty is *not* any of these things individually
   - e.g. variance is not uncertainty, variability covers multiple different known values, uncertainty means we don't know the value
 - It seems that nobody can actually tell me what uncertainty IS
@@ -246,89 +246,127 @@ ggplot(df_words,
 ## If you are me...
 You decide the entire field is fake and not worth working on
 
+![](images/fake1.jpg){fig-align="center"}
+
 
 ## If you are me...
 But you are a year into your externally funded PhD with a set topic
 
-## So you take another approach
-- Instead of defining what uncertainty IS, maybe we can look at where uncertainty ISN'T
-- To do that, we need to take a look back into the past... past... past
+![](images/fake2.jpg){fig-align="center"}
 
-## Posivitism [@Otsuka2023]
+## So you take another approach
+::: {.incremental}
+- Instead of defining what uncertainty IS...
+- Maybe we can look at where uncertainty ISN'T?
+- To do that, we need to take a look back into the past... 
+  - past... 
+  - [past...]{style="font-size: 0.8em"} 
+  - [past...]{style="font-size: 0.4em"} 
+::: 
+
+
+## Posivitism [@Otsuka2023] {.smaller}
+::::: columns
+::: {.column width="50%"}
 - In nineteenth-century England, positivism was all the rage
-- These guys loved descriptive statistics *becase* descriptive statsitics do not have uncertainty
+  - Positivists loved descriptive statistics *becase* they don't have uncertainty
+:::
+
+::: {.column width="50%"}
+
+![](images/posivitism1.jpg){fig-align="center"}
+
+:::
+:::::
+
+
+## Posivitism [@Otsuka2023] {.smaller}
+::::: columns
+::: {.column width="50%"}
+
+:::: {.incremental}
 - Inference requires us to reference the "unobservable"
-  - Discussions about future values, population parameters, new observations, etc require the "uniformity of nature" assumption 
+  - Discussions about future values, population parameters, new observations
 - Uniformity of nature: assume that the observations we have are similar to the ones we do not have
   - The potential to violate this assumption is what creates uncertainty
+:::: 
+
+:::
+
+::: {.column width="50%"}
+
+![](images/posivitism2.jpg){fig-align="center"}
+
+:::
+:::::
+
 
 ## So what is uncertainty?
+:::: {.incremental}
 - It is the price we pay for looking into the unknown
-- Statistics is the act of quantifyng this uncertainty
+- Statistics are how we quantify this uncertainty
   - "Statistical inference" merges the source of uncertainty with the tool we use to quantify it
-- If uncertainty is the by product of statistical inference, then uncertainty visualisations are a visualisation of some *prior* inference
-  - i.e. they are a visualisation of estimates
-  - The most complete representation of an estimate is it's probability distribution
+:::: 
 
-## Yes, probability distributions always work
-- Some researchers (fools) believe these abstract notions of uncertainty "cannot be described by a probability distribution"
-  - Credibility or confidence? Bayesians constantly model degrees of belif
-  - Uncertain about uncertainty? Hiercarchical approaches
-  - False assumptions? Diagnostic tools caught dead in a ditch
-- Annecdotally, I am *YET* to come accross a *SINGLE* example of uncertainty that cannot be modeled by a density function 
+## Where is the uncertainty coming from in visualisation?
+:::: {.incremental}
 
-## Quantified vs unquantified
+- There are two things we can be uncertain about in a data visualisation
+  1. The data itself (i.e. we are visualising estimates) 
+  2. The conclusions we draw from the plot (i.e. visual inference)
+
+:::: 
+
+
+## Where is the uncertainty coming from in visualisation? {.smaller}
+:::: {.incremental}
+- Visualisation are used for Exploratory Data Analysis (EDA)
+  - EDA is a deductive method
+  - Uncertainty in conclusions is a fundamental feature of deduction, this uncertainty (i.e. #2) cannot be incorperated into the visualisation
+  - It would violate causality
+- Data is the only possible source of uncertainty in an uncertainty visualisation.
+:::: 
+
+## Quantified vs unquantified {.smaller}
+:::: {.incremental}
 - What about stuff like missing values? 
   - Missing data is not, in and of itself, uncertain. Most data is missing, the weird stuff is the stuff we record.
-  - Missing data *creates* uncertainy when it leads to violations in our assumptions. We then use statistics to quantify the effect of those violations.
-  - We quantify it by incorperating the information into our estimated distribution
+  - Missing data *creates* uncertainy when it leads to violations in our assumptions. 
+  - We then use statistics to quantify the effect of those violations.
 - Uncertainty must be quantified to be included in an uncertainty visualisation
+:::: 
 
-## All that other stuff fits in?
+## This framework organises our "uncertainty" words {.smaller}
+:::: {.incremental}
 We can look at all those terms we had earlier, and understand how they fit in with this description of uncertainty
 - Precision? **Looking beyond our measured precision creates uncertainty.** 
 - Missing values, expertise? **Potential assumption violations, need to quantify the impact on our estimates using statistics.** 
 - True randomness vs lack of information **Will more data reduce the uncertainty?**
 - Probability, variance, or confidence intervals? **A numerical summary of our quantified uncertainty**
 - Error & Accuracy? **A consequence of uncertainty**
-
-## What if the uncertainty 
-But what about visual inference?
-- Visualisations are used for EDA and Communication
-  - EDA = deductive (no prior hypothesis)
-  - CDA = communication (prior hypothesis)
-
-- People try to account for *all* uncertainty by checking every single possible hypothesis
-- Under EDA, the *point* is that there is no hypothesis
-- To try and incorperate the uncertainty of
-
-## How does this fit into
-- We cannot include uncertainty
+:::: 
 
 
-- Visualisation should be an accurate representation of our data
-  - It should avoid making assumptions or imposing models
-- 
-
-
-
-
-## Quite a common data type
+## What does this mean?
 ::: {.incremental}
-Often our data is....
-
--   Unavailable
-    -   e.g. anonymised data, measurement error, etc.
--   Non-deterministic
-    -   e.g. bounded data, estimated values, etc.
--   or Theoretical
-    -   e.g. estimates based on theory, latent variables, etc
-
+Uncertainty visualisation is the visualisation of random matricies
+- Earlier in our analysis we performed *inference* and created *estimates*
+- Estimates are best repesented as *probability distributions*
+- A table of probability distributions is a *random matrix*
+- Uncertainty visualisation is the visualisation of this data
 ::: 
 
+## No, probability distributions are not limiting {.smaller}
+:::: {.incremental}
+- Some researchers (fools) believe these abstract notions of uncertainty "cannot be described by a probability distribution"
+  - Credibility or confidence? Bayesians constantly model degrees of belif
+  - Uncertain about uncertainty? Hiercarchical approaches
+  - False assumptions? Diagnostic tools caught dead in a ditch
+- Annecdotally, I am *YET* to come accross a *SINGLE* example of uncertainty that cannot be modeled by a density function 
+:::: 
 
 
-## Data type already exists
+## Make this data using distributional {.smaller}
 
 ```{r}
 clean_walk|> 
@@ -340,37 +378,51 @@ clean_walk|>
 ::: {.incremental}
 - Include pedometer uncertainty with `distributional`
   - Thank you Mitch, Matt, Alex, and Rob
-  - Vectorised random variable
-  - Our walktober examples are truncated normal distributions
-- This is not a talk on `distributional` 
+  - This is not a talk on `distributional`
+- Our walktober examples are truncated normal distributions
+  - The "prior inference" comes from measurement error (i.e. what is my *true* step count, not the *recorded* step count)
+:::
+
+# Part 2: What is the goal of uncertainty visualisation?
+
+## Start smaller
+::::: columns
+::: {.column width="50%"}
+
+:::: {.incremental}
+What is the goal of visualisation?
+- To accurately map data to visual representation
+- I really like the way the plotscaper paper made this point
+
+:::: 
 
 :::
 
-# Part 2: What is uncertainty visualisation?
+::: {.column width="50%"}
+
+![](adam1.jpg){fig-align="center"}
+
+:::
+:::::
+
+## Maintain the connection between data and visualisation
+
+![](adam2.jpg){fig-align="center"}
+
+## How do we do this in practice? {.smaller}
+:::: {.incremental}
+- Maintain distance
+  - Distance in the data space should equate to distance in the visual space
+  - e.g. value extraction studies
+- Distance in the visual space?
+  - Visual distinguishability
+  - 
+:::: 
 
 
-
-
-## Why visualise uncertainty?
-- the facilitation of trust or confidence
-- the ability to extract values related to a distribution
-- the prevention of false discovery in plots
-- the extraction of some other metric that is vaguely related to “uncertainty”
-
-## Why visualise uncertainty?
-All discussions on uncertainty visualisation seem to have a common thread that connects them: the belief that the ultimate goal of uncertainty visualisation is not trust, rationality, or value extraction, but transparency.
-- when authors claim that failing to include uncertainty is akin to fraud or lying
-- when authors assert that uncertainty communicates the legitimacy (or illegitimacy) of the conclusion drawn from visual inference
-- when authors say uncertainty visualisations should communicate a degree of confidence or validity in our conclusions.
-- uncertainty visualisation should “guide, qualify, or soften our judgements of uncertain data”
 
 ## Section Overview
-- What is visualisation?
-  - A continuous map from data to representation?
-- A pipe is not a bar chart point (and duck image)
-- What are we trying to maintain?
-  - Distance. Distance in the data space should equate to distance in the visual space
-  - e.g. value extraction studies. 
+
   - We consider it a problem when visualisations diverge from their data space & call it a bias' (like the sine illustion)
 - Distance in the visual space translates to visual distinguishability. 
   - e.g. lineup protocol is a malhalobis distance
@@ -542,23 +594,575 @@ pv / (p1 | p2 | p3 | p4 ) / (q1 | q2 | q3 | q4)
 
 # Part 3: What makes an effective uncertainty visualisation? 
 
-## Notes
-- Uncertainty visualisation is motivated by the need for a sort of “visual hypothesis test”, a sentiment expressed by some authors directly
-- A successful uncertainty visualisation would act as a “statistical hedge” for any inference we make using the graphic. Since the purpose of a visualisation is to give a quick gist of the information this hedging should be communicated visually without the need for complicated mental calculations.
+## How should the visualisation look?
+- Act as a “visual hypothesis test” or “statistical hedge” for any inference we make using the graphic. 
+- The purpose of a visualisation is to give a quick gist 
+  - NO mental calculations.
 - Therefore, an effective uncertainty visualisation should not just “show” uncertainty; untrustworthy conclusions should not be visible.
 - We suggest calling this approach to uncertainty visualisation “signal modulation”
 
-## Consequence of distance in uncertainty visualisation
+## How should the visualisation look?
 -   Statistical validity should translates to perceptual ease
     -   The higher the variance on an estimate, the harder that estimate is to extract from the plot
 
 ![](images/signoise.jpeg){fig-align="center"}
 
-## Don't hide me signals, I needed those!
-- Some people don't like the idea of the plot hiding signals
-  - It doesn't hide signals (I mean it does but it is beside the point)
-  - It is simply giving a more accurate rendering of your data, if that hides the signals, I don't think they were there to begin with.
-- If you think this, I hope you have all your spam filters turned off
+
+## Am I bad at my job?
+- I've just kind of been going around and saying the pixel map works best for signal modulation 
+- My primary evidence being "bro look at it, we all have eyes"
+- Some people disagree with me?
+- Apparently I can't just say stuff without any evidence
+
+# Wait is this even a testable hypothesis? 
+
+## Should you start a perceptual experiment from scratch three months before your PhD submission deadline and also forget to tell your main advisor about it until you are like a month in? 
+- Sure, why not
+
+## Well thankfully there is probably some existing evaluation approach you can use to test your hypothesis...
+- Nah
+
+## Wait what?
+- This underlying hypothesis is one of the core motivations for the literature
+- And yet, most evaluation methods seem to just kind of ignore it
+
+## Existing evaluations fall into three main categories
+1. Vibes: do you feel like this represents uncertainty? 
+2. Decision making: Would you rather invest in group A or B? Why?
+3. Value extraction: What is the mean of this distribution? What is the variance?
+  
+## Can I use these?
+- No
+1. I don't care about vibes
+2. Decision making is just value extraction but with extra steps
+3. Value extraction could work, but there are some issues...
+
+## Whats wrong with value extraction?
+1. They mess with the role of signal and noise in the plot 
+2. They require interpretation, which violate the Ratatouille rule
+  
+
+## Problem 1 - The signal vs noise 
+- The role of signal and noise is not set in stone and can change during our analysis
+- Signal is just question we are trying to answer, noise is the stuff that obfuscates that signal
+- Changing the question changes the roles of signal and noise
+
+## Ideal statistical inference workflow
+
+![](images/stacker1.jpeg){fig-align="center"}
+
+## Changing the question
+
+![](images/stacker2.jpeg){fig-align="center"}
+
+
+
+
+
+## Specifically for uncertainty visualisation
+
+![](images/angeldevil1.jpeg){fig-align="center"}
+
+## Specifically for uncertainty visualisation
+
+![](images/angeldevil2.jpeg){fig-align="center"}
+
+<!-- - Therefore, if we make a plot with the intention of uncertainty acting as noise, but then ask a direct question such as "What is the variance?", the variance has become signal. -->
+<!-- - We are not evaluating uncertainty as noise. -->
+
+## 2) Problem 2 - The Ratatouille rule{.smaller}
+
+::::: columns
+::: {.column width="65%"}
+
+- "Not everyone can become a great artist, but a great artist can come from anywhere." - Anton Ego (Ratatouille (2007))
+- "Not *everyone* need to be able to understand your plot, but a good plot can be understood by *anyone*. - Me (right here, right now)
+  - Colour blind friendly palette VS Spatial autocorrelation
+
+:::
+
+::: {.column width="35%"}
+
+![](images/rats.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
+## OK lets try a different approach
+- If we don't ask direct questions, what can we do?
+- Technically the lineup protocol avoids these problems
+  - Similar motivations to uncertainty visualisation
+  - Parallel to hypothesis testing
+
+## What is it?
+![](images/lineup.jpeg){fig-align="center"}
+
+## Lineup is a hypothesis test{.smaller}
+
+::::: columns
+::: {.column width="40%"}
+
+- Think of visual difference (or discernability) as a distance. 
+  - If you can visually tell the difference between your plot, and a null plot, they are different.
+  - This is a visual version of Malhalobis distance
+
+:::
+
+::: {.column width="60%"}
+
+![](images/distance.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
+## Lineups for plot evaluation{.smaller}
+
+::::: columns
+::: {.column width="40%"}
+
+- Lineups useful for evaluating plots 
+  - Reminder, this is what we are trying to do here.
+  - Using the lineup protocol, different plot designs are different tests
+  - Compare their power
+
+
+
+:::
+
+::: {.column width="60%"}
+
+![](images/powercurve.jpeg){fig-align="center"}
+
+:::
+:::::
+
+## OK this is perfect! Right? 
+  
+  
+::::: columns
+::: {.column width="50%"}
+
+- But there is one little thing...
+  - I am kept awake at night by the PCA example from Chowdhury et al.
+  - I can SEE the pattern!
+
+
+:::
+
+::: {.column width="50%"}
+
+![](images/pcaeg.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
+## Using the lineup framework
+![](images/uncertaintyvis.jpeg){fig-align="center"}
+
+
+## Comapring on the PCA example
+![](images/hypsource.jpeg){fig-align="center"}
+
+## Hypothesis tests and confidence intervals
+Unlike a lineup, uncertainty visualisation requires us to know what our null is. A pattern is subjective.
+
+![](images/hypvsci.jpeg){fig-align="center"}
+
+## In plain English{.smaller}
+- Uncertainty visualisation requires us to have a visual hypothesis in our brain
+- Asking a direct question is a fundamental requirement of the method
+  - Therefore we need to
+    - 1) Set up the data so that people can't use the variance as a signal to answer it
+    - 2) Have the question require zero statistical interpretation
+    - 3) Analyse it the same way we would with a lineup protocol
+
+## We need an evaluation method that...
+- Can measure a latent variable we cannot directly
+- Could be understood by a child 
+- Specifically tests if a pattern is visible 
+
+## ... Wait 
+  
+::::: columns
+::: {.column width="60%"}
+
+- Thats just an Ishihara colourblind test
+- Usually the latent variable is colour vision deficiency
+- In this experiment we will make the latent variable uncertainty.
+- OK this will work.
+
+
+:::
+
+::: {.column width="40%"}
+
+![](images/ishi.png){fig-align="center"}
+
+:::
+:::::
+
+
+
+## Aside: pour one out for Alison and Rachel
+![](images/zoom.jpeg){fig-align="center"}
+
+
+
+## Message from Susan
+::: {.chat}
+:::: {.speaker-2}
+Hey
+::::
+:::
+
+## Context: Who is Susan?
+![](images/ducks.jpeg){fig-align="center"}
+
+
+## Message from Susan
+::: {.chat}
+:::: {.speaker-2}
+Hey
+::::
+
+:::: {.fragment .speaker-2}
+Are you doing OK? I just spoke to Rachel and Alison at the Graphics Group meeting, and they are worried about you after your meeting today.
+::::
+
+:::: {.fragment .speaker-1}
+RIP I thought that meeting went well. Whoops.
+::::
+
+:::: {.fragment .speaker-2}
+Yup I thought so. I told them you are just like that.
+::::
+
+:::
+
+
+# Doing The Experiment
+
+## The stimuli
+- Making Ishihara plates of the choropleth maps is super easy
+- Nick Tierney has a package called `ishihara` 
+
+![](images/ishihara.png){fig-align="center"}
+
+## The stimuli
+Which we use to make Ishihara uncertainty maps
+
+![](images/teaser2.png)
+
+## Data 
+Grid of distance and variance of estimates
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/dist_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/theorytile.png){fig-align="center"}
+:::
+:::::
+
+
+
+## The evaluation
+- We are going to use the lineup approach to evaluate the plots
+  1. Get significance level (type I error) of each plot type 
+  2. Set the significance level and calculate the power curve 
+- We want a visualisation to map as closely to the theoretical power curve as possible.
+
+## Our hypothesis?
+- i.e. stuff I have been saying with no evidence
+  - 1. Choropleth maps and Bivariate value/variance maps are identical 
+  - 2. VSUP will do some signal suppression, but not in a way that is mathematically consistent with hypothesis test results
+  - 3. Pixel maps and Transparency maps should perform the same
+
+
+# Results
+
+## Significance levels
+![](images/sigtest.png){fig-align="center"}
+
+## Choropleth - data
+::::: columns
+::: {.column width="50%"}
+
+![](images/choro_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/chorotile.png){fig-align="center"}
+
+:::
+:::::
+
+
+## Choropleth - power curves
+
+```{r}
+#| out-width: 100%
+# load simulated models
+load("data/glmer_models.rda")
+load("data/theoretical_models.rda")
+# load("data/average_fit.rda")
+
+name_distance <- function(string) {
+  paste0("Distance: \n", string)
+}
+
+LINES <- c("T-test" = "longdash", "Moran's I" = "dotdash")
+
+map_type = "Choropleth"
+pcol = gpal[1]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+## Bivariate - data
+::::: columns
+::: {.column width="50%"}
+
+![](images/bivar_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/bivartile.png){fig-align="center"}
+
+:::
+:::::
+
+## Bivariate - power curves
+
+```{r}
+#| out-width: 100%
+map_type = "Bivariate"
+pcol = gpal[2]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+## VSUP - data
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/vsup_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/vsuptile.png){fig-align="center"}
+
+:::
+:::::
+
+
+## VSUP - power curves
+
+```{r}
+#| out-width: 100%
+map_type = "VSUP"
+pcol = gpal[3]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+## Pixel - data
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/pix_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/pixeltile.png){fig-align="center"}
+
+:::
+:::::
+
+## Pixel - power curves
+
+```{r}
+#| out-width: 100%
+map_type = "Pixel"
+pcol = gpal[4]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+## Transparency - data
+
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/trans_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/transtile.png){fig-align="center"}
+
+:::
+:::::
+
+## Transparency - power curves
+```{r}
+#| out-width: 100%
+map_type = "Transparency"
+pcol = gpal[4]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+## To sum up?
+- I was right, never verify your claims, they will just prove what you already thought based on vibes
+
+
+
+
+
 
 # Part 4: Making uncertainty visualisations in `ggdibbler`
 
@@ -1083,56 +1687,13 @@ p3 + p4
 ```
 
 
-## Components of the grammar
-
-![](images/changes.jpeg){fig-align="center"}
-
-## Scale
-
-![](images/scale.jpeg){fig-align="center" width=50%}
-
-## Statistic
-![](images/statistics.jpeg){fig-align="center" width=50%}
-
-## Why change the groups?
-
-```{r}
-#| label: fig-grouping-need
-#| message: false
-
-set.seed(4453)
-
-l1 <- uncertain_mpg |>
-  sample_expand(times=100) |>
-  ggplot(aes(displ, hwy)) +
-  geom_point(alpha=0.01) +
-  geom_smooth() +
-  ggtitle("a. without modifying group") +
-  theme(plot.title = element_text(size = tsize))
-
-l2 <- ggplot(uncertain_mpg, aes(displ, hwy)) +
-  geom_point_sample(alpha=0.01, seed = 22, times=100) +
-  geom_smooth_sample(linewidth=0.1, alpha=0.01, seed = 22, times=100) +
-  ggtitle("b. group includes draw") +
-  theme(plot.title = element_text(size = tsize))
-
-l1 + l2 + plot_layout(ncol=2)
-```
-
-
-## Position Adjustments
-
-![](images/positions.jpeg){fig-align="center"}
-
 
 # Conclusion
 
-## Conclusion
-- If you think data visualisations are statistics, these are not my opinions
 
 ## Acknowledgements
 -   My supervisors: Di Cook, Susan Vanderplas, and Sarah Goodwin
--   Good ideas: Mitch O'Hara-Wild and Cynthia Huang
+-   Good ideas: Mitch O'Hara-Wild, Cynthia Huang, Emily Robbinson
 -   AEMO Zema Energy Scholarship
 -   Australian RTP Stipend
 -   Numbat Hackathon (for the walktober data)
