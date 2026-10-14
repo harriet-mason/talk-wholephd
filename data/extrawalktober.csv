@@ -1,0 +1,25 @@
+name,tracker,bias_mu,bias_se,dog_owner,height,transport,suburb,role
+A,Garmin,1,1,No,190,Public transit,South Yarra,PhD Student
+B,Apple Watch,5,4,No,178,Public transit,Oakleigh ,PhD Student
+C,Apple Watch,5,4,No,169,Walk,Clayton,PhD Student
+D,Samsung Phone,7,2,No,179,Public transit,Abbotsford,PhD Student
+E,Apple Watch,5,4,No,168,Public transit,Murrumbeena,Staff
+F,Apple Watch,5,4,No,160,Drive,Clayton,Staff
+G,Apple Watch,5,4,No,162,Public transit,Mordi ,Staff
+H,Google Pixel 8a,7,2,No,183,Drive,Port Melbourne,Staff
+I,Iphone,3,2,No,157,Drive,Clayton,PhD Student
+J,Google Pixel 8a,7,2,Yes,169,Public transit,South Yarra,PhD Student
+K,Apple Watch,5,4,No,164,Drive,Clayton ,PhD Student
+L,Iphone,3,2,No,168,Walk,Clayton,PhD Student
+M,Oura Ring,16,25,No,178,Public transit,St Kilda East,Staff
+N,Android Phone,7,2,Yes,164,Drive,St Kilda East,Staff
+O,Oura Ring,16,25,No,180,Public transit,South Yarra,Staff
+P,Apple Watch,5,4,No,160,Cycle,Clayton,Staff
+Q,Android Phone,7,2,No,183,Cycle,Oakleigh ,Staff
+R,Garmin,1,1,No,174,Drive,Clayton,PhD Student
+S,Misc Pedometer,15,20,Yes,175,Drive,Footscray,Staff
+T,Samsung Phone,7,2,No,172,Drive,Croydon,Staff
+U,Garmin,1,1,No,164,Drive,Port Melbourne,Staff
+V,Apple Watch,5,4,No,170,Generally wfh,Langwarrin,Staff
+W,Iphone,3,2,No,164,Walk,Claython north,Staff
+X,Misc Pedometer,15,20,No,160,Drive,South Yarra,Staff
