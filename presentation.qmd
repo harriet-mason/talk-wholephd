@@ -16,8 +16,7 @@ title-slide-attributes:
   smaller: true
 ---
 
-# Walktober
-
+# Setup 
 ```{r setup}
 #| include: false
 #| message: false
@@ -33,6 +32,8 @@ library(patchwork)
 library(kableExtra)
 library(ggthemes)
 library(ggdist)
+library(ggwordcloud)
+
 # read in other data
 
 theme_set( theme_gdocs() + 
@@ -46,6 +47,8 @@ theme_set( theme_gdocs() +
 )
 gpal <- gdocs_pal()(5)
 ```
+
+# Walktober
 
 ```{r walkremote}
 #| eval: false
@@ -188,7 +191,129 @@ This is going to be the focus of todays talk. We are going to go over:
 
 # Part 1: What is uncertainty?
 
-## Not even an uncommon scenario
+## Word association
+Rather than a strict definition, uncertainty is often described using a word salad
+
+```{r}
+# Set seed for appearance of plot
+set.seed(3)
+
+# make data
+terms <- c("Epistemic", 
+           "Precision", 
+           "Accuracy", 
+           "Missing values", 
+           "Error", 
+           "Bounds",
+           "Variance",
+           "Density",
+           "Probability",
+           "Risk",
+           "Expertise",
+           "Assumptions",
+           ""
+           )       
+
+word_size <- round(abs(unlist(generate(dist_normal(30,10), length(terms)))))
+word_angle <- 45 * sample(-2:2, length(terms), replace = TRUE, prob = c(1, 1, 4, 1, 1))
+word_colour <- factor(sample.int(length(terms), length(terms), replace = FALSE))
+
+# make into df
+df_words <- tibble(
+  words = terms,
+  size = word_size,
+  angle = word_angle,
+  colour = word_colour
+  ) |>
+    arrange(desc(size)) 
+    
+
+ggplot(df_words, 
+       aes(label = words, size = size,
+           color = colour,
+           angle = angle)) +
+  geom_text_wordcloud(area_corr = TRUE) +
+  scale_radius(range = c(0, 20), limits = c(0, NA)) +
+  theme_minimal()
+```
+
+## These words are all related 
+- Uncertainty is *not* any of these things individually
+  - e.g. variance is not uncertainty, variability covers multiple different known values, uncertainty means we don't know the value
+- It seems that nobody can actually tell me what uncertainty IS
+- How can you visualise something you can't even define? This field doesn't make any sense. 
+
+## If you are me...
+You decide the entire field is fake and not worth working on
+
+
+## If you are me...
+But you are a year into your externally funded PhD with a set topic
+
+## So you take another approach
+- Instead of defining what uncertainty IS, maybe we can look at where uncertainty ISN'T
+- To do that, we need to take a look back into the past... past... past
+
+## Posivitism [@Otsuka2023]
+- In nineteenth-century England, positivism was all the rage
+- These guys loved descriptive statistics *becase* descriptive statsitics do not have uncertainty
+- Inference requires us to reference the "unobservable"
+  - Discussions about future values, population parameters, new observations, etc require the "uniformity of nature" assumption 
+- Uniformity of nature: assume that the observations we have are similar to the ones we do not have
+  - The potential to violate this assumption is what creates uncertainty
+
+## So what is uncertainty?
+- It is the price we pay for looking into the unknown
+- Statistics is the act of quantifyng this uncertainty
+  - "Statistical inference" merges the source of uncertainty with the tool we use to quantify it
+- If uncertainty is the by product of statistical inference, then uncertainty visualisations are a visualisation of some *prior* inference
+  - i.e. they are a visualisation of estimates
+  - The most complete representation of an estimate is it's probability distribution
+
+## Yes, probability distributions always work
+- Some researchers (fools) believe these abstract notions of uncertainty "cannot be described by a probability distribution"
+  - Credibility or confidence? Bayesians constantly model degrees of belif
+  - Uncertain about uncertainty? Hiercarchical approaches
+  - False assumptions? Diagnostic tools caught dead in a ditch
+- Annecdotally, I am *YET* to come accross a *SINGLE* example of uncertainty that cannot be modeled by a density function 
+
+## Quantified vs unquantified
+- What about stuff like missing values? 
+  - Missing data is not, in and of itself, uncertain. Most data is missing, the weird stuff is the stuff we record.
+  - Missing data *creates* uncertainy when it leads to violations in our assumptions. We then use statistics to quantify the effect of those violations.
+  - We quantify it by incorperating the information into our estimated distribution
+- Uncertainty must be quantified to be included in an uncertainty visualisation
+
+## All that other stuff fits in?
+We can look at all those terms we had earlier, and understand how they fit in with this description of uncertainty
+- Precision? **Looking beyond our measured precision creates uncertainty.** 
+- Missing values, expertise? **Potential assumption violations, need to quantify the impact on our estimates using statistics.** 
+- True randomness vs lack of information **Will more data reduce the uncertainty?**
+- Probability, variance, or confidence intervals? **A numerical summary of our quantified uncertainty**
+- Error & Accuracy? **A consequence of uncertainty**
+
+## What if the uncertainty 
+But what about visual inference?
+- Visualisations are used for EDA and Communication
+  - EDA = deductive (no prior hypothesis)
+  - CDA = communication (prior hypothesis)
+
+- People try to account for *all* uncertainty by checking every single possible hypothesis
+- Under EDA, the *point* is that there is no hypothesis
+- To try and incorperate the uncertainty of
+
+## How does this fit into
+- We cannot include uncertainty
+
+
+- Visualisation should be an accurate representation of our data
+  - It should avoid making assumptions or imposing models
+- 
+
+
+
+
+## Quite a common data type
 ::: {.incremental}
 Often our data is....
 
@@ -200,6 +325,8 @@ Often our data is....
     -   e.g. estimates based on theory, latent variables, etc
 
 ::: 
+
+
 
 ## Data type already exists
 
@@ -220,6 +347,24 @@ clean_walk|>
 :::
 
 # Part 2: What is uncertainty visualisation?
+
+
+
+
+## Why visualise uncertainty?
+- the facilitation of trust or confidence
+- the ability to extract values related to a distribution
+- the prevention of false discovery in plots
+- the extraction of some other metric that is vaguely related to “uncertainty”
+
+## Why visualise uncertainty?
+All discussions on uncertainty visualisation seem to have a common thread that connects them: the belief that the ultimate goal of uncertainty visualisation is not trust, rationality, or value extraction, but transparency.
+- when authors claim that failing to include uncertainty is akin to fraud or lying
+- when authors assert that uncertainty communicates the legitimacy (or illegitimacy) of the conclusion drawn from visual inference
+- when authors say uncertainty visualisations should communicate a degree of confidence or validity in our conclusions.
+- uncertainty visualisation should “guide, qualify, or soften our judgements of uncertain data”
+
+## Section Overview
 - What is visualisation?
   - A continuous map from data to representation?
 - A pipe is not a bar chart point (and duck image)
@@ -396,6 +541,12 @@ pv / (p1 | p2 | p3 | p4 ) / (q1 | q2 | q3 | q4)
 
 
 # Part 3: What makes an effective uncertainty visualisation? 
+
+## Notes
+- Uncertainty visualisation is motivated by the need for a sort of “visual hypothesis test”, a sentiment expressed by some authors directly
+- A successful uncertainty visualisation would act as a “statistical hedge” for any inference we make using the graphic. Since the purpose of a visualisation is to give a quick gist of the information this hedging should be communicated visually without the need for complicated mental calculations.
+- Therefore, an effective uncertainty visualisation should not just “show” uncertainty; untrustworthy conclusions should not be visible.
+- We suggest calling this approach to uncertainty visualisation “signal modulation”
 
 ## Consequence of distance in uncertainty visualisation
 -   Statistical validity should translates to perceptual ease
