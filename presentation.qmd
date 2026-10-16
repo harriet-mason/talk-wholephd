@@ -14,9 +14,11 @@ title-slide-attributes:
   data-background-size: contain
   data-background-opacity: "0.2"
   smaller: true
+bibliography: references.bib
 ---
 
-# Setup 
+
+
 ```{r setup}
 #| include: false
 #| message: false
@@ -116,7 +118,9 @@ suburb_walk <- clean_walk |>
 
 ## What is walktober? {.smaller}
 
-Our department had a walkathon in october where we all competed to see how many steps we could walk each day ![](images/walktober.jpeg){fig-align="center"}
+Our department had a walkathon in october where we all competed to see how many steps we could walk each day 
+
+![](images/walktober.jpeg){fig-align="center"}
 
 ## Data quality angel
 
@@ -132,7 +136,8 @@ Before the competition started, I searched up the most accurate and cost effecti
 
 ## Pedometer = bad {.smaller}
 
--   It turns out, pedometers are wildly inaccurate ![](images/pedometers.jpeg){fig-align="center"}
+-   It turns out, pedometers are wildly inaccurate 
+![](images/pedometers.jpeg){fig-align="center"}
 
 
 ## Data quality demons {.smaller}
@@ -185,9 +190,8 @@ p1 + p2
 This is going to be the focus of todays talk. We are going to go over:
 
 - Part 1: What is uncertainty?
-- Part 2: What is the goal of uncertainty visualisation?
+- Part 2: What is the goal of uncertainty visualisation? 
 - Part 3: What makes an effective uncertainty visualisation? 
-- Part 4: Making uncertainty visualisations in `ggdibbler`
 
 # Part 1: What is uncertainty?
 
@@ -210,8 +214,7 @@ terms <- c("Epistemic",
            "Probability",
            "Risk",
            "Expertise",
-           "Assumptions",
-           ""
+           "Assumptions"
            )       
 
 word_size <- round(abs(unlist(generate(dist_normal(30,10), length(terms)))))
@@ -256,8 +259,8 @@ But you are a year into your externally funded PhD with a set topic
 
 ## So you take another approach
 ::: {.incremental}
-- Instead of defining what uncertainty IS...
-- Maybe we can look at where uncertainty ISN'T?
+- Instead of defining what uncertainty **IS**...
+- Maybe we can look at where uncertainty **ISN'T?**
 - To do that, we need to take a look back into the past... 
   - past... 
   - [past...]{style="font-size: 0.8em"} 
@@ -274,7 +277,7 @@ But you are a year into your externally funded PhD with a set topic
 
 ::: {.column width="50%"}
 
-![](images/posivitism1.jpg){fig-align="center"}
+![](images/positivism1.jpg){fig-align="center"}
 
 :::
 :::::
@@ -289,23 +292,68 @@ But you are a year into your externally funded PhD with a set topic
   - Discussions about future values, population parameters, new observations
 - Uniformity of nature: assume that the observations we have are similar to the ones we do not have
   - The potential to violate this assumption is what creates uncertainty
+- Uncertainty is the price we pay for looking beyond our observations
+
 :::: 
 
 :::
 
 ::: {.column width="50%"}
 
-![](images/posivitism2.jpg){fig-align="center"}
+![](images/positivism2.jpg){fig-align="center"}
 
 :::
 :::::
 
-
-## So what is uncertainty?
+## What is uncertainty? {.smaller}
 :::: {.incremental}
-- It is the price we pay for looking into the unknown
-- Statistics are how we quantify this uncertainty
-  - "Statistical inference" merges the source of uncertainty with the tool we use to quantify it
+- Every example of uncertainty is simply a violation (or potential violation) to the *uniformity of nature*
+  - We check for the violations using statistical tests
+  - We quantify the violations using statistical inference
+  - e.g. missing data.
+    - It is not, in and of itself, "uncertainty", but it can *create* uncertainty through a reduction in information, or bias
+- If we have zero violations we have no uncertainty (as is the case with descriptive statistics).
+    
+:::: 
+
+## Quantifying uncertainty {.smaller}
+:::: {.incremental}
+- Uncertainty must be quantified to be visualised
+- Our violations can 
+  a. Bias = false information 
+    - Our population parameter is not like existing data
+    - (e.g. data not missing completely at random)
+  b. Variance = insufficient information 
+    - We have insufficient evidence to say if our data is like existing data
+    - (e.g. data missing completely at random so information on non-missing observations are lost) 
+- Quantified uncertainty can be represented as an adjustment to the density of your estimate
+
+:::: 
+
+## The role of statistics in uncertainty
+:::: {.incremental}
+
+- Statisticians are like data economists
+  - Economists = Maximise utility given a set amount of resources
+  - Statisticians = Minimise uncertainty given a set amount of data
+- If we didn't want to use statistics, we could just throw up our hands and say everything is equally likely 
+  - We all probably know someone like this
+  - The "well everything gives you cancer" approach
+  - Not advised (I am a statistician though, so I'm biased)
+    
+:::: 
+
+
+
+## This framework organises our "uncertainty" words {.smaller}
+:::: {.incremental}
+
+We can look at all those terms we had earlier, and understand how they fit in with this description of uncertainty
+- Precision? **The set level of information that we have (looking beyond it would create variance).** 
+- Error, risk, or accuracy? **The consequences of uncertainty.**
+- Missing values, expertise, assumptions? **Potential violations to the uniformity of nature** 
+- Probability, variance, bounds, or confidence intervals? **A numerical summary of our quantified uncertainty**
+
 :::: 
 
 ## Where is the uncertainty coming from in visualisation?
@@ -322,29 +370,13 @@ But you are a year into your externally funded PhD with a set topic
 :::: {.incremental}
 - Visualisation are used for Exploratory Data Analysis (EDA)
   - EDA is a deductive method
-  - Uncertainty in conclusions is a fundamental feature of deduction, this uncertainty (i.e. #2) cannot be incorperated into the visualisation
+  - Uncertainty in conclusions is a fundamental feature of deduction, this uncertainty (i.e. #2) cannot be incorporated into the visualisation
   - It would violate causality
 - Data is the only possible source of uncertainty in an uncertainty visualisation.
+
 :::: 
 
-## Quantified vs unquantified {.smaller}
-:::: {.incremental}
-- What about stuff like missing values? 
-  - Missing data is not, in and of itself, uncertain. Most data is missing, the weird stuff is the stuff we record.
-  - Missing data *creates* uncertainy when it leads to violations in our assumptions. 
-  - We then use statistics to quantify the effect of those violations.
-- Uncertainty must be quantified to be included in an uncertainty visualisation
-:::: 
 
-## This framework organises our "uncertainty" words {.smaller}
-:::: {.incremental}
-We can look at all those terms we had earlier, and understand how they fit in with this description of uncertainty
-- Precision? **Looking beyond our measured precision creates uncertainty.** 
-- Missing values, expertise? **Potential assumption violations, need to quantify the impact on our estimates using statistics.** 
-- True randomness vs lack of information **Will more data reduce the uncertainty?**
-- Probability, variance, or confidence intervals? **A numerical summary of our quantified uncertainty**
-- Error & Accuracy? **A consequence of uncertainty**
-:::: 
 
 
 ## What does this mean?
@@ -355,6 +387,7 @@ Uncertainty visualisation is the visualisation of random matricies
 - Estimates are best repesented as *probability distributions*
 - A table of probability distributions is a *random matrix*
 - Uncertainty visualisation is the visualisation of this data
+
 ::: 
 
 ## No, probability distributions are not limiting {.smaller}
@@ -364,6 +397,7 @@ Uncertainty visualisation is the visualisation of random matricies
   - Uncertain about uncertainty? Hiercarchical approaches
   - False assumptions? Diagnostic tools caught dead in a ditch
 - Annecdotally, I am *YET* to come accross a *SINGLE* example of uncertainty that cannot be modeled by a density function 
+
 :::: 
 
 
@@ -382,6 +416,7 @@ clean_walk|>
   - This is not a talk on `distributional`
 - Our walktober examples are truncated normal distributions
   - The "prior inference" comes from measurement error (i.e. what is my *true* step count, not the *recorded* step count)
+  
 :::
 
 # Part 2: What is the goal of uncertainty visualisation?
@@ -401,16 +436,14 @@ clean_walk|>
 :::
 :::::
 
-
-
-## Start smaller
+## What is the goal of visualisation?
 ::::: columns
 ::: {.column width="50%"}
 
-:::: {.incremental}
-What is the goal of visualisation?
+Lets start with a smaller question.
 
-- To accurately map data to visual representation
+:::: {.incremental}
+- When is the essence of our goals for a visualisation? What is it trying to do?
 - The `plotscaper` paper made this point really well
 :::: 
 
@@ -418,23 +451,45 @@ What is the goal of visualisation?
 
 ::: {.column width="50%"}
 
-![](adam1.jpg){fig-align="center"}
+![](images/adam1.jpeg){fig-align="center"}
 
 :::
 :::::
 
 ## A graphic is a map between data visualisation and visual representation
-Maintain the connection between data and visualisation
 
-![](adam2.jpg){fig-align="center"}
+```{r}
+#| include: false
+#| eval: false
+library(tidyverse)
+df <- tibble(Species = c("Dog", "Cat", "Dog", "Bird", "Cow", "Cat", "Dog"),
+             Weight = c(9.7, 5.2, 62.3, 0.8, 562.8, 3.7, 32.4))
+ggplot(df) +
+  geom_point(aes(x = Species, y = Weight, colour = Species)) +
+  scale_y_log10() +
+  theme(aspect.ratio = 1)
+```
 
-## How do we do this in practice? {.smaller}
+![](images/link1.jpeg){fig-align="center"}
+
+
+
+## The connection makes a chart a chart
+This is what differentiates a data visualisation from a drawing
+
+![](images/adam2.jpg){fig-align="center"}
+
+
+
+
+## Extending on this idea {.smaller}
 :::: {.incremental}
-- Maintain distance
+- We expand on this idea by expanding on this concept to define metrics and convergence for visualisations
   - Distance in the data space should equate to distance in the visual space
-  - e.g. value extraction studies
-- Distance in the visual space?
-  - Visual distinguishability (e.g. lineup protocol)
+  - e.g. bad colour palet selection can warp the space
+- Distance in visual space = visual distinguishability 
+  - (e.g. lineup protocol)
+  
 :::: 
 
 ## What is the lineup protocol?
@@ -586,7 +641,6 @@ q1 + q2 + q3 + q4
 - Some people disagree with me?
 - Apparently I can't just say stuff without any evidence
 
-# Wait is this even a testable hypothesis? 
 
 ## Should you start a perceptual experiment from scratch three months before your PhD submission deadline and also forget to tell your main advisor about it until you are like a month in? 
 - Sure, why not (If you have Rachel and Alison's help)
