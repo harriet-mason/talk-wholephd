@@ -645,19 +645,15 @@ p1 <- ggplot(faithfuld, aes(waiting, eruptions)) +
   theme(legend.position = "bottom")
 
 p2 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
-  geom_raster_sample(aes(fill = density0)) +
-  scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
-  theme(legend.position = "bottom")
-
-p3 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
   geom_raster_sample(aes(fill = density)) +
   scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
   theme(legend.position = "bottom")
 
-p4 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
+p3 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
   geom_raster_sample(aes(fill = density2)) +
   scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom") +
+  labs(fill = "density")
 
 pv <- ggplot() +
   geom_segment(aes(x = 0, xend = 5, y = 1 ), arrow = arrow()) +
@@ -668,7 +664,7 @@ pv <- ggplot() +
   theme_void()
 
 
-pv / (p4 | p3 | p2 | p1 ) 
+pv / (p3 | p2 | p1 ) 
 
 ```
 
