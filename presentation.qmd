@@ -1,7 +1,7 @@
 ---
-title: "Looking at Visual Statistics with `ggdibbler`"
-author: "Harriet Mason, Dianne Cook, Sarah Goodwin, Susan Vanderplas"
-institute: "Monash University, Australia"
+title: "The What, Why, and How of Uncertainty Visualisation"
+author: "Harriet Mason"
+institute: "University of Queensland, Australia"
 format: 
   revealjs: 
     theme: simple
@@ -15,6 +15,8 @@ title-slide-attributes:
   data-background-opacity: "0.2"
   smaller: true
 bibliography: references.bib
+filters:
+  - bibentry
 ---
 
 
@@ -49,6 +51,7 @@ theme_set( theme_gdocs() +
 )
 gpal <- gdocs_pal()(5)
 ```
+
 
 # Walktober
 
@@ -186,12 +189,19 @@ p1 + p2
 ```
 
 # Overview
+## Note
+- This talk is based on three papers
+  - [@phd_chap1]{.bibentry}
+  - [@phd_chap2]{.bibentry}
+  - [@phd_chap3]{.bibentry}
+  
 ## Overview
 This is going to be the focus of todays talk. We are going to go over:
 
 - Part 1: What is uncertainty?
 - Part 2: What is the goal of uncertainty visualisation? 
-- Part 3: What makes an effective uncertainty visualisation? 
+- Part 3: How to (safely) make uncertainty visualisations in `ggdibbler`
+- Part 4: Verifying that the plots work
 
 # Part 1: What is uncertainty?
 
@@ -319,13 +329,11 @@ But you are a year into your externally funded PhD with a set topic
 ## Quantifying uncertainty {.smaller}
 :::: {.incremental}
 - Uncertainty must be quantified to be visualised
-- Our violations can 
+- Quantified uncertainty will either appear as:
   a. Bias = false information 
-    - Our population parameter is not like existing data
-    - (e.g. data not missing completely at random)
+    - Our population parameter is not like existing data (e.g. data not missing completely at random)
   b. Variance = insufficient information 
-    - We have insufficient evidence to say if our data is like existing data
-    - (e.g. data missing completely at random so information on non-missing observations are lost) 
+    - We cant say if our population parameter is like existing data (e.g. data missing completely at random loses data) 
 - Quantified uncertainty can be represented as an adjustment to the density of your estimate
 
 :::: 
@@ -436,6 +444,11 @@ clean_walk|>
 :::
 :::::
 
+## What is visualisation?
+A continuous functions that maps distance in our data to a visual representation
+
+![](images/visualfunction.jpeg){fig-align="center"}
+
 ## What is the goal of visualisation?
 ::::: columns
 ::: {.column width="50%"}
@@ -474,8 +487,8 @@ ggplot(df) +
 
 
 
-## The connection makes a chart a chart
-This is what differentiates a data visualisation from a drawing
+## Data to Representation 
+This is what differentiates a statistical graphic from a drawing
 
 ![](images/adam2.jpg){fig-align="center"}
 
@@ -488,21 +501,102 @@ This is what differentiates a data visualisation from a drawing
   - Distance in the data space should equate to distance in the visual space
   - e.g. bad colour palet selection can warp the space
 - Distance in visual space = visual distinguishability 
-  - (e.g. lineup protocol)
+  - e.g. lineup protocol @Buja2009
+  
+::::
+
+## What is the lineup protocol?
+::::: columns
+::: {.column width="60%"}
+:::: {.incremental}
+- To explain what the lineup protocol is, I am going to use an example from @Chowdhury
+- Researchers have a dataset of wasp gene expression
+  - 4 groups - Foundress (F), Gyne (G), Queen (Q) and Worker (W)
+  - 447 variables, randomly selected 40
+  - 50 observations Number of observations
+  - Performed a linear discriminant analysis (LDA) decomposition, and visualised the results
+- Is this group separation statistically significant?
+
+:::: 
+
+:::
+
+::: {.column width="40%"}
+
+```{r}
+# Generate true data from lineup protocol
+library(MASS)
+library(nullabor)
+library(tidyverse)
+library(ggthemes)
+
+data(wasps)
+
+wasp.lda <- lda(Group~., data=wasps[,-1])
+wasp.ld <- predict(wasp.lda, dimen=2)$x
+true <- data.frame(wasp.ld, Group=wasps$Group)
+
+ggplot(true, aes(x=LD1, y=LD2, colour=Group)) + 
+  geom_point() + 
+  theme(aspect.ratio=1) +
+  scale_color_gdocs()
+```
+
+:::
+:::::
+
+
+
+## What is the lineup protocol?
+::::: columns
+::: {.column width="50%"}
+:::: {.incremental}
+- A lineup protocol is a kind of visual hypothesis test introduced by @Buja2009
+
+  - You have a visual function, $V$, that you use to generate a plot
+  - You generate 19 plots from some null distribution, 
+  - You generate 1 plot from your true data
+  - If you can identify the true plot, you reject the null hypothesis
   
 :::: 
 
-## What is the lineup protocol?
-![](images/lineup.jpeg){fig-align="center"}
+:::
+
+::: {.column width="50%"}
+
+```{r}
+# Generate lineup protocol plot
+wasp.sim <- data.frame(LD1=NULL, LD2=NULL, Group=NULL, .n=NULL)
+for (i in 1:19) {
+  x <- wasps
+  x$Group <- sample(x$Group)
+  x.lda <- lda(Group~., data=x[,-1])
+  x.ld <- predict(x.lda, dimen=2)$x
+  sim <- data.frame(x.ld, Group=x$Group, .n=i)
+  wasp.sim <- rbind(wasp.sim, sim)
+}
+
+pos <- sample(1:20, 1)
+d <- lineup(true=true, samples=wasp.sim, pos=pos)
+
+ggplot(d, aes(x=LD1, y=LD2, colour=Group)) + 
+  facet_wrap(~.sample, ncol=5) +
+  geom_point() + theme(aspect.ratio=1) +
+  scale_color_gdocs()
+```
+
+:::
+:::::
+
 
 ## Hypothesis test = Malhalobis distance{.smaller}
 
 ::::: columns
 ::: {.column width="40%"}
 
-- Think of visual difference (or discernability) as a distance. 
-  - If you can visually tell the difference between your plot, and a null plot, they are different.
-  - This is a visual version of Malhalobis distance
+- Lineups (and visualisation more broadly) implicitly use visual distinction (or discernability) as distance. 
+- The lineup employs a Malhalobis distance version of this metric
+  - This makes sense as it is a visual version of a statistical test
 
 :::
 
@@ -513,23 +607,121 @@ This is what differentiates a data visualisation from a drawing
 :::
 :::::
 
-## What is visualisation?
-A continuous functions that maps distance in our data to visual distinguishability
+## Defining visual convergence
+- This allows us to define convergence
+- That is, when two plots are visually indistinguishable from one another, they have visually converged.
+- Why do we want to define convergence? It gives us enough information to answer our original question...
+
+## What is uncertainty visualisation?
+If a visualisation is a a continuous functions...
 
 ![](images/visualfunction.jpeg){fig-align="center"}
 
-
 ## What is uncertainty visualisation?
-That same visual function with a *random matrix input*
+...And an uncertainty visualisation is a visualisation with a *random matrix input*...
 
 ![](images/replace.jpeg){fig-align="center"}
 
 
 ## What is uncertainty visualisation?
+...then maintaining the link requires us to adhere to Continuous Mapping theorem
 
 ![](images/visualcmt.jpeg){fig-align="center"}
 
-## Achieve with samples {.smaller}
+## What is uncertainty visualisation?
+So an uncertainty visualisations are visualisations of random matricies, that have the desired convergent properties
+
+```{r}
+#| eval: false
+#| include: false
+
+library(ggdibbler)
+library(patchwork)
+library(colorspace)
+
+p1 <- ggplot(faithfuld, aes(waiting, eruptions)) + 
+  geom_raster(aes(fill = density)) +
+  scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
+  theme(legend.position = "bottom")
+
+p2 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
+  geom_raster_sample(aes(fill = density0)) +
+  scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
+  theme(legend.position = "bottom")
+
+p3 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
+  geom_raster_sample(aes(fill = density)) +
+  scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
+  theme(legend.position = "bottom")
+
+p4 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
+  geom_raster_sample(aes(fill = density2)) +
+  scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
+  theme(legend.position = "bottom")
+
+pv <- ggplot() +
+  geom_segment(aes(x = 0, xend = 5, y = 1 ), arrow = arrow()) +
+  geom_text(aes(label = expression(sigma), x = -0.2, y = 1 ), size = 10) +
+  geom_text(aes(label = "0", x = 5.2, y = 1 ), size = 10) +
+  geom_text(aes(label = "as the variance approaches zero", x = 2.5, y = 1.1 ), size = 6) +
+  ylim(0.5,1.5) +
+  theme_void()
+
+
+pv / (p4 | p3 | p2 | p1 ) 
+
+```
+
+## Call this "signal modulation"
+- This property means that statistical validity translates to perceptual ease
+    - The higher the variance on an estimate, the harder that estimate is to extract from the plot
+- The purpose of a visualisation is to give a quick gist (NO mental calculations)
+
+![](images/signoise.jpeg){fig-align="center"}
+
+## Convergence of uncertainty visualisation
+- Difficulty in value extraction is often avoided, but it is a requirement of a data visualisation that operates as intended.
+
+*Include LDA uncertainty visualisation example to talk about visual differentiation*
+
+# Part 3: How to (safely) make uncertainty visualisations in `ggdibbler`
+
+## Whoops, I broke the connection
+- It turns out breaking the connection between data and representation is really easy in uncertainty visualisation
+- It happens all the time
+
+*Include example of A with blur and with sampling*
+
+
+## Make this into a `ggplot2` extension
+I want a package that does this for every `geom` & `stat`
+
+![](images/visualconvergence.jpeg){fig-align="center"}
+
+
+## Minds eye code
+The function is the same. The input that different
+```{r}
+#| echo: true
+#| eval: false
+# determinsitic ggplot
+ggplot(deterministic_data) +
+  geom_tile(aes(x=x, y=y, fill=z))
+
+# random variable ggplot
+ggplot(random_data) +
+  geom_tile(aes(x=x, y=y, fill=random_z))
+```
+
+![](images/mindseye.jpeg){fig-align="center"}
+
+
+## Its a simple problem...
+
+![](images/simpleproblem.jpeg){fig-align="center"}
+
+
+## That is actually even simpler {.smaller}
   
 ::::: columns
 ::: {.column width="50%"}
@@ -621,501 +813,7 @@ q1 + q2 + q3 + q4
 :::::
 
 
-# Part 3: What makes an effective uncertainty visualisation? 
-
-## How well does this work?
-- Ideally, this all accumulates to the plots work as a “visual hypothesis test” or “statistical hedge” for any inference we make using the graphic. 
-- The purpose of a visualisation is to give a quick gist 
-  - NO mental calculations.
-
-## Signal modulation
--   Statistical validity should translates to perceptual ease
-    -   The higher the variance on an estimate, the harder that estimate is to extract from the plot
-
-![](images/signoise.jpeg){fig-align="center"}
-
-
-## Am I bad at my job?{.smaller}
-- I spent the middle two years of my PhD just kind of been going around and saying the pixel map works best for signal modulation 
-- My primary evidence being "bro look at it, we all have eyes"
-- Some people disagree with me?
-- Apparently I can't just say stuff without any evidence
-
-
-## Should you start a perceptual experiment from scratch three months before your PhD submission deadline and also forget to tell your main advisor about it until you are like a month in? 
-- Sure, why not (If you have Rachel and Alison's help)
-
-## Well thankfully there is probably some existing evaluation approach you can use to test your hypothesis...
-- Nah
-- Wait what?
-
-## Implicit vs Explicit testing
-- There are two ways to evaluate a plot [@Vanderplas2020]
-
-  - Explicit: "What is the spatial correlation in this plot?"
-  - Implicit: "Which is the odd one out"
-
-
-## Prefer to use implicit
-There are two issues with using explicit testing
-1. Implicit tests are more aligned with EDA
-2. The Ratatouille rule
-
-## The Ratatouille rule{.smaller}
-
-::::: columns
-::: {.column width="65%"}
-
-- "Not everyone can become a great artist, but a great artist can come from anywhere." - Anton Ego (Ratatouille (2007))
-- "Not *everyone* need to be able to understand your plot, but a good plot can be understood by *anyone*. - Me (right here, right now)
-  - Colour blind friendly palette VS Spatial autocorrelation
-
-:::
-
-::: {.column width="35%"}
-
-![](images/rats.jpeg){fig-align="center"}
-
-:::
-:::::
-
-
-## So, the lineup protocol?
-- Remember the two sources of uncertainty in a graphic?
-  1. The data itself (i.e. we are visualising estimates) 
-  2. The conclusions we draw from the plot (i.e. visual inference)
-- Visual inference tests the second. We only have the first.
-
-
-## Aside: pour one out for Alison and Rachel
-![](images/zoom.jpeg){fig-align="center"}
-
-
-
-## Message from Susan
-::: {.chat}
-:::: {.speaker-2}
-Hey
-::::
-:::
-
-## Context: Who is Susan?
-![](images/ducks.jpeg){fig-align="center"}
-
-
-## Message from Susan
-::: {.chat}
-:::: {.speaker-2}
-Hey
-::::
-
-:::: {.fragment .speaker-2}
-Are you doing OK? I just spoke to Rachel and Alison at the Graphics Group meeting, and they are worried about you after your meeting today.
-::::
-
-:::: {.fragment .speaker-1}
-RIP I thought that meeting went well. Whoops.
-::::
-
-:::: {.fragment .speaker-2}
-Yup I thought so. I told them you are just like that.
-::::
-
-:::
-
-
-## We need an explicit evaluation method that...
-- Can measure a latent variable (uncertainty)
-- Could be understood by a child 
-- Specifically tests if a pattern is visible 
-
-## ... Wait 
-  
-::::: columns
-::: {.column width="60%"}
-
-- Thats just an Ishihara colourblind test
-- Usually the latent variable is colour vision deficiency
-- In this experiment we will make the latent variable uncertainty.
-- OK this will work.
-
-
-:::
-
-::: {.column width="40%"}
-
-![](images/ishi.png){fig-align="center"}
-
-:::
-:::::
-
-
-
-
-## Will still use the power curve analysis{.smaller}
-
-::::: columns
-::: {.column width="40%"}
-
-- Lineups can be compared to power curves
-- We can do the same here 
-:::
-
-::: {.column width="60%"}
-
-![](images/powercurve.jpeg){fig-align="center"}
-
-:::
-:::::
-
-
-# Doing The Experiment
-
-## The stimuli
-- Making Ishihara plates of the choropleth maps is super easy
-- Nick Tierney has a package called `ishihara` 
-
-![](images/ishihara.png){fig-align="center"}
-
-## The stimuli
-Which we use to make Ishihara uncertainty maps
-
-![](images/teaser2.png)
-
-## Data 
-Grid of distance and variance of estimates
-
-::::: columns
-::: {.column width="50%"}
-
-![](images/dist_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-![](images/theorytile.png){fig-align="center"}
-:::
-:::::
-
-
-## Our hypothesis?
-- i.e. stuff I have been saying with no evidence
-  - 1. Choropleth maps and Bivariate value/variance maps are identical 
-  - 2. VSUP will do some signal suppression, but not in a way that is mathematically consistent with hypothesis test results
-  - 3. Pixel maps and Transparency maps should perform the same
-
-
-# Results
-
-## Significance levels
-![](images/sigtest.png){fig-align="center"}
-
-## Choropleth - data
-::::: columns
-::: {.column width="50%"}
-
-![](images/choro_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-![](images/chorotile.png){fig-align="center"}
-
-:::
-:::::
-
-
-## Choropleth - power curves
-
-```{r}
-#| out-width: 100%
-# load simulated models
-load("data/glmer_models.rda")
-load("data/theoretical_models.rda")
-# load("data/average_fit.rda")
-
-name_distance <- function(string) {
-  paste0("Distance: \n", string)
-}
-
-LINES <- c("T-test" = "longdash", "Moran's I" = "dotdash")
-
-map_type = "Choropleth"
-pcol = gpal[1]
-
-glmer_models |>
-  filter(!D==0,
-         plot_type %in% map_type) |>
-  mutate(line_id = interaction(plot_type, id)) |>
-  ggplot(aes(x=V,  group = line_id)) +
-  geom_line(aes(y = power_random), colour = pcol,
-            linewidth=0.3, alpha=0.3) +
-  geom_line(data = theoretical_models |>
-              filter(!D==0, plot_type %in% map_type) |>
-              mutate(line_id = interaction(test, plot_type, correct_number)),
-            aes(y=power_random, linetype = test),
-            linewidth=0.3, colour = "black") +
-  theme(legend.position="top", 
-        legend.direction ="horizontal",
-        text=element_text(size=10), 
-        strip.text.x=element_text(size=8),
-        strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
-  guides(colour = "none") + 
-  facet_wrap(~D, nrow = 1,
-             labeller = labeller(D = name_distance)) +
-  labs(x = "Standard Deviation", y = "Power",
-       linetype = "Classical Test") +
-  scale_linetype_manual(values = LINES) 
-
-```
-
-
-## Bivariate - data
-::::: columns
-::: {.column width="50%"}
-
-![](images/bivar_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-![](images/bivartile.png){fig-align="center"}
-
-:::
-:::::
-
-## Bivariate - power curves
-
-```{r}
-#| out-width: 100%
-map_type = "Bivariate"
-pcol = gpal[2]
-
-glmer_models |>
-  filter(!D==0,
-         plot_type %in% map_type) |>
-  mutate(line_id = interaction(plot_type, id)) |>
-  ggplot(aes(x=V,  group = line_id)) +
-  geom_line(aes(y = power_random), colour = pcol,
-            linewidth=0.3, alpha=0.3) +
-  geom_line(data = theoretical_models |>
-              filter(!D==0, plot_type %in% map_type) |>
-              mutate(line_id = interaction(test, plot_type, correct_number)),
-            aes(y=power_random, linetype = test),
-            linewidth=0.3, colour = "black") +
-  theme(legend.position="top", 
-        legend.direction ="horizontal",
-        text=element_text(size=10), 
-        strip.text.x=element_text(size=8),
-        strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
-  guides(colour = "none") + 
-  facet_wrap(~D, nrow = 1,
-             labeller = labeller(D = name_distance)) +
-  labs(x = "Standard Deviation", y = "Power",
-       linetype = "Classical Test") +
-  scale_linetype_manual(values = LINES) 
-
-```
-
-
-## VSUP - data
-
-::::: columns
-::: {.column width="50%"}
-
-![](images/vsup_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-![](images/vsuptile.png){fig-align="center"}
-
-:::
-:::::
-
-
-## VSUP - power curves
-
-```{r}
-#| out-width: 100%
-map_type = "VSUP"
-pcol = gpal[3]
-
-glmer_models |>
-  filter(!D==0,
-         plot_type %in% map_type) |>
-  mutate(line_id = interaction(plot_type, id)) |>
-  ggplot(aes(x=V,  group = line_id)) +
-  geom_line(aes(y = power_random), colour = pcol,
-            linewidth=0.3, alpha=0.3) +
-  geom_line(data = theoretical_models |>
-              filter(!D==0, plot_type %in% map_type) |>
-              mutate(line_id = interaction(test, plot_type, correct_number)),
-            aes(y=power_random, linetype = test),
-            linewidth=0.3, colour = "black") +
-  theme(legend.position="top", 
-        legend.direction ="horizontal",
-        text=element_text(size=10), 
-        strip.text.x=element_text(size=8),
-        strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
-  guides(colour = "none") + 
-  facet_wrap(~D, nrow = 1,
-             labeller = labeller(D = name_distance)) +
-  labs(x = "Standard Deviation", y = "Power",
-       linetype = "Classical Test") +
-  scale_linetype_manual(values = LINES) 
-
-```
-
-## Pixel - data
-
-::::: columns
-::: {.column width="50%"}
-
-![](images/pix_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-![](images/pixeltile.png){fig-align="center"}
-
-:::
-:::::
-
-## Pixel - power curves
-
-```{r}
-#| out-width: 100%
-map_type = "Pixel"
-pcol = gpal[4]
-
-glmer_models |>
-  filter(!D==0,
-         plot_type %in% map_type) |>
-  mutate(line_id = interaction(plot_type, id)) |>
-  ggplot(aes(x=V,  group = line_id)) +
-  geom_line(aes(y = power_random), colour = pcol,
-            linewidth=0.3, alpha=0.3) +
-  geom_line(data = theoretical_models |>
-              filter(!D==0, plot_type %in% map_type) |>
-              mutate(line_id = interaction(test, plot_type, correct_number)),
-            aes(y=power_random, linetype = test),
-            linewidth=0.3, colour = "black") +
-  theme(legend.position="top", 
-        legend.direction ="horizontal",
-        text=element_text(size=10), 
-        strip.text.x=element_text(size=8),
-        strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
-  guides(colour = "none") + 
-  facet_wrap(~D, nrow = 1,
-             labeller = labeller(D = name_distance)) +
-  labs(x = "Standard Deviation", y = "Power",
-       linetype = "Classical Test") +
-  scale_linetype_manual(values = LINES) 
-
-```
-
-## Transparency - data
-
-
-::::: columns
-::: {.column width="50%"}
-
-![](images/trans_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-![](images/transtile.png){fig-align="center"}
-
-:::
-:::::
-
-## Transparency - power curves
-```{r}
-#| out-width: 100%
-map_type = "Transparency"
-pcol = gpal[4]
-
-glmer_models |>
-  filter(!D==0,
-         plot_type %in% map_type) |>
-  mutate(line_id = interaction(plot_type, id)) |>
-  ggplot(aes(x=V,  group = line_id)) +
-  geom_line(aes(y = power_random), colour = pcol,
-            linewidth=0.3, alpha=0.3) +
-  geom_line(data = theoretical_models |>
-              filter(!D==0, plot_type %in% map_type) |>
-              mutate(line_id = interaction(test, plot_type, correct_number)),
-            aes(y=power_random, linetype = test),
-            linewidth=0.3, colour = "black") +
-  theme(legend.position="top", 
-        legend.direction ="horizontal",
-        text=element_text(size=10), 
-        strip.text.x=element_text(size=8),
-        strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
-  guides(colour = "none") + 
-  facet_wrap(~D, nrow = 1,
-             labeller = labeller(D = name_distance)) +
-  labs(x = "Standard Deviation", y = "Power",
-       linetype = "Classical Test") +
-  scale_linetype_manual(values = LINES) 
-
-```
-
-
-## To sum up?
-- I was right, never verify your claims, they will just prove what you already thought based on vibes
-
-
-
-
-
-
-# Part 4: Making uncertainty visualisations in `ggdibbler`
-
-## Make this into a `ggplot2` extension
-I want a package that does this for every `geom` & `stat`
-
-![](images/visualconvergence.jpeg){fig-align="center"}
-
-
-## Minds eye code
-The function is the same. The input that different
-```{r}
-#| echo: true
-#| eval: false
-# determinsitic ggplot
-ggplot(deterministic_data) +
-  geom_tile(aes(x=x, y=y, fill=z))
-
-# random variable ggplot
-ggplot(random_data) +
-  geom_tile(aes(x=x, y=y, fill=random_z))
-```
-
-![](images/mindseye.jpeg){fig-align="center"}
-
-
-## Its a simple problem...
-
-![](images/simpleproblem.jpeg){fig-align="center"}
-
-
-
-
-## ... that we make even simpler
+## ... and we make even simpler again
 - Start off with a choropleth map, `geom_sf`
 
 ```{r}
@@ -1509,6 +1207,457 @@ p4 <- ggplot(clean_walk, aes(x=team, y = steps_dist, fill = team_colour)) +
 
 p3 + p4
 ```
+
+
+
+
+# Part 4: Verifying that the plots work
+
+
+## Am I bad at my job?{.smaller}
+- I spent the middle two years of my PhD just kind of been going around and saying the pixel map works best for signal modulation 
+- My primary evidence being "bro look at it, we all have eyes"
+- Some people disagree with me?
+- Apparently I can't just say stuff without any evidence
+
+
+## Should you start a perceptual experiment from scratch three months before your PhD submission deadline and also forget to tell your main advisor about it until you are like a month in? 
+- Sure, why not (If you have Rachel and Alison's help)
+
+## Well thankfully there is probably some existing evaluation approach you can use to test your hypothesis...
+- Nah
+- Wait what?
+
+## Implicit vs Explicit testing
+- There are two ways to evaluate a plot [@Vanderplas2020]
+
+  - Explicit: "What is the spatial correlation in this plot?"
+  - Implicit: "Which is the odd one out"
+
+
+## Prefer to use implicit
+There are two issues with using explicit testing
+1. Implicit tests are more aligned with EDA
+2. The Ratatouille rule
+
+## The Ratatouille rule{.smaller}
+
+::::: columns
+::: {.column width="65%"}
+
+- "Not everyone can become a great artist, but a great artist can come from anywhere." - Anton Ego (Ratatouille (2007))
+- "Not *everyone* need to be able to understand your plot, but a good plot can be understood by *anyone*. - Me (right here, right now)
+  - Colour blind friendly palette VS Spatial autocorrelation
+
+:::
+
+::: {.column width="35%"}
+
+![](images/rats.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
+## So, the lineup protocol?
+- Remember the two sources of uncertainty in a graphic?
+  1. The data itself (i.e. we are visualising estimates) 
+  2. The conclusions we draw from the plot (i.e. visual inference)
+- Visual inference tests the second. We only have the first.
+
+
+## Aside: pour one out for Alison and Rachel
+![](images/zoom.jpeg){fig-align="center"}
+
+
+
+## Message from Susan
+::: {.chat}
+:::: {.speaker-2}
+Hey
+::::
+:::
+
+## Context: Who is Susan?
+![](images/ducks.jpeg){fig-align="center"}
+
+
+## Message from Susan
+::: {.chat}
+:::: {.speaker-2}
+Hey
+::::
+
+:::: {.fragment .speaker-2}
+Are you doing OK? I just spoke to Rachel and Alison at the Graphics Group meeting, and they are worried about you after your meeting today.
+::::
+
+:::: {.fragment .speaker-1}
+RIP I thought that meeting went well. Whoops.
+::::
+
+:::: {.fragment .speaker-2}
+Yup I thought so. I told them you are just like that.
+::::
+
+:::
+
+
+## We need an explicit evaluation method that...
+- Can measure a latent variable (uncertainty)
+- Could be understood by a child 
+- Specifically tests if a pattern is visible 
+
+## ... Wait 
+  
+::::: columns
+::: {.column width="60%"}
+
+- Thats just an Ishihara colourblind test
+- Usually the latent variable is colour vision deficiency
+- In this experiment we will make the latent variable uncertainty.
+- OK this will work.
+
+
+:::
+
+::: {.column width="40%"}
+
+![](images/ishi.png){fig-align="center"}
+
+:::
+:::::
+
+
+
+
+## Will still use the power curve analysis{.smaller}
+
+::::: columns
+::: {.column width="40%"}
+
+- Lineups can be compared to power curves
+- We can do the same here 
+:::
+
+::: {.column width="60%"}
+
+![](images/powercurve.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
+
+## The stimuli
+- Making Ishihara plates of the choropleth maps is super easy
+- Nick Tierney has a package called `ishihara` 
+
+![](images/ishihara.png){fig-align="center"}
+
+## The stimuli
+Which we use to make Ishihara uncertainty maps
+
+![](images/teaser2.png)
+
+## Data 
+Grid of distance and variance of estimates
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/dist_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/theorytile.png){fig-align="center"}
+:::
+:::::
+
+
+## Our hypothesis?
+- i.e. stuff I have been saying with no evidence
+  - 1. Choropleth maps and Bivariate value/variance maps are identical 
+  - 2. VSUP will do some signal suppression, but not in a way that is mathematically consistent with hypothesis test results
+  - 3. Pixel maps and Transparency maps should perform the same
+
+
+
+## Significance levels
+![](images/sigtest.png){fig-align="center"}
+
+## Choropleth - data
+::::: columns
+::: {.column width="50%"}
+
+![](images/choro_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/chorotile.png){fig-align="center"}
+
+:::
+:::::
+
+
+## Choropleth - power curves
+
+```{r}
+#| out-width: 100%
+# load simulated models
+load("data/glmer_models.rda")
+load("data/theoretical_models.rda")
+# load("data/average_fit.rda")
+
+name_distance <- function(string) {
+  paste0("Distance: \n", string)
+}
+
+LINES <- c("T-test" = "longdash", "Moran's I" = "dotdash")
+
+map_type = "Choropleth"
+pcol = gpal[1]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+## Bivariate - data
+::::: columns
+::: {.column width="50%"}
+
+![](images/bivar_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/bivartile.png){fig-align="center"}
+
+:::
+:::::
+
+## Bivariate - power curves
+
+```{r}
+#| out-width: 100%
+map_type = "Bivariate"
+pcol = gpal[2]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+## VSUP - data
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/vsup_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/vsuptile.png){fig-align="center"}
+
+:::
+:::::
+
+
+## VSUP - power curves
+
+```{r}
+#| out-width: 100%
+map_type = "VSUP"
+pcol = gpal[3]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+## Pixel - data
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/pix_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/pixeltile.png){fig-align="center"}
+
+:::
+:::::
+
+## Pixel - power curves
+
+```{r}
+#| out-width: 100%
+map_type = "Pixel"
+pcol = gpal[4]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+## Transparency - data
+
+
+::::: columns
+::: {.column width="50%"}
+
+![](images/trans_5x5.png){fig-align="center"}
+
+:::
+
+::: {.column width="50%"}
+
+![](images/transtile.png){fig-align="center"}
+
+:::
+:::::
+
+## Transparency - power curves
+```{r}
+#| out-width: 100%
+map_type = "Transparency"
+pcol = gpal[4]
+
+glmer_models |>
+  filter(!D==0,
+         plot_type %in% map_type) |>
+  mutate(line_id = interaction(plot_type, id)) |>
+  ggplot(aes(x=V,  group = line_id)) +
+  geom_line(aes(y = power_random), colour = pcol,
+            linewidth=0.3, alpha=0.3) +
+  geom_line(data = theoretical_models |>
+              filter(!D==0, plot_type %in% map_type) |>
+              mutate(line_id = interaction(test, plot_type, correct_number)),
+            aes(y=power_random, linetype = test),
+            linewidth=0.3, colour = "black") +
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+## To sum up?
+- I was right, never verify your claims, they will just prove what you already thought based on vibes
+
+
+
+
 
 
 
