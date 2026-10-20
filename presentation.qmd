@@ -26,8 +26,9 @@ filters:
 #| message: false
 #| warning: false
 
-library(ggdibbler)
+library(MASS)
 library(tidyverse)
+library(ggdibbler)
 library(colorspace)
 library(sf)
 library(ggthemes)
@@ -37,9 +38,17 @@ library(kableExtra)
 library(ggthemes)
 library(ggdist)
 library(ggwordcloud)
+library(nullabor)
+library(shadowtext)
+library(flextable)
+library(ozmaps)
+library(emmeans)
+library(broom)
+library(lme4)
+library(car)
+library(janitor)
 
-# read in other data
-
+# set theme?
 theme_set( theme_gdocs() + 
              theme(aspect.ratio = 1, 
                    axis.text.x = element_text(angle = 35, 
@@ -525,11 +534,6 @@ This is what differentiates a statistical graphic from a drawing
 
 ```{r}
 # Generate true data from lineup protocol
-library(MASS)
-library(nullabor)
-library(tidyverse)
-library(ggthemes)
-
 data(wasps)
 
 wasp.lda <- lda(Group~., data=wasps[,-1])
@@ -634,10 +638,6 @@ So an uncertainty visualisations are visualisations of random matricies, that ha
 ```{r}
 #| eval: false
 #| include: false
-
-library(ggdibbler)
-library(patchwork)
-library(colorspace)
 
 p1 <- ggplot(faithfuld, aes(waiting, eruptions)) + 
   geom_raster(aes(fill = density)) +
@@ -1208,7 +1208,41 @@ p3 + p4
 
 
 # Part 4: Verifying that the plots work
+```{r, setup-part4}
+source("code/gen_functions.R") # in render
 
+dist_5x5 <- parent_dists |>
+  ggplot(aes(xdist = dist, colour = group)) +
+  
+  # Visualise parent distribution
+  stat_slab(scale = 0.3, fill=NA, 
+            linewidth=2, alpha=0.6,
+            aes(y=-0.35)) +
+  geom_hline(yintercept = -0.35, colour = "black") +
+  
+  # Visualise Estimate Distribution
+  stat_slab(data = estimate_dists, normalize = "panels",
+            fill=NA, linewidth=0.1, alpha=0.7) + 
+  geom_hline(yintercept = 0, colour = "black") +
+  
+  # Visualise Cumultive Distributions
+  # Haven't done yet
+  
+  # Other visual changes
+  facet_grid(rows = vars(V), cols = vars(D), as.table = FALSE,
+             scales = "free") +
+  scale_colour_manual(values = pal) +
+  theme_void() +
+  labs(y = "f(X)", x = "X") +
+  theme_void() +
+  labs(y = "f(X)", x = "X") +
+  theme(aspect.ratio = 1,
+        legend.position = "none",
+        strip.background = element_blank(),
+        strip.text.y = element_blank(),
+        strip.text.x = element_blank())
+
+```
 
 ## Am I bad at my job?{.smaller}
 - I spent the middle two years of my PhD just kind of been going around and saying the pixel map works best for signal modulation 
