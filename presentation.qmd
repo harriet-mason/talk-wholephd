@@ -49,14 +49,14 @@ library(car)
 library(janitor)
 
 # set theme?
-theme_set( theme_gdocs() + 
-             theme(aspect.ratio = 1, 
-                   axis.text.x = element_text(angle = 35, 
-                                              vjust = 1.05, 
-                                              hjust=1),
-                   palette.colour.continuous = gdocs_pal(),
-                   palette.colour.discrete = gdocs_pal(),
-             )
+# theme_set( theme_gdocs() + 
+#              theme(aspect.ratio = 1, 
+#                    axis.text.x = element_text(angle = 35, 
+#                                               vjust = 1.05, 
+#                                               hjust=1),
+#                    palette.colour.continuous = gdocs_pal(),
+#                    palette.colour.discrete = gdocs_pal(),
+#              )
 )
 gpal <- gdocs_pal()(5)
 ```
@@ -114,7 +114,8 @@ clean_walk <- filtered_walk |>
   ungroup() |>
   filter(date <= as.Date("23/10/25", "%d/%m/%y")) |>
   na.omit()
-
+# remove emojis
+clean_walk$team <- gsub("\\p{So}", "", clean_walk$team, perl = TRUE)
 suburb_walk <- clean_walk |>
   as.tibble() |>
   group_by(suburb) |>
@@ -130,7 +131,7 @@ suburb_walk <- clean_walk |>
 
 ## What is walktober? {.smaller}
 
-Our department had a walkathon in october where we all competed to see how many steps we could walk each day 
+My department had a walkathon in October where we all competed to see how many steps we could walk each day (+ visualisation challenge)
 
 ![](images/walktober.jpeg){fig-align="center"}
 
@@ -161,8 +162,8 @@ Before the competition started, I searched up the most accurate and cost effecti
 
 :::: {.column width="40%"}
 ::: {.incremental}
--   It turns out I was the ONLY person concerned about data quality
 -   We conducted a survey after walktober, to see if we could quantify the pedometer error
+-   It turns out I was the ONLY person concerned about data quality
 -   Turns out the measurement error was the least of my worries
 :::
 ::::
@@ -194,8 +195,25 @@ p2 <- ggplot(clean_walk, aes(x=team, y = steps, fill = team_colour)) +
   ggtitle("Total steps per team, per person") +
   theme_few()
 
-p1 + p2
+p1 + p2 + 
+  plot_annotation() & 
+  theme(plot.background = element_blank())
 ```
+
+## Statistically sensible
+
+::::: columns
+::: {.column width="40%"}
+- I don't just want "pedometer uncertainty", it should be statistically sensible!
+- Statistical properties are what differentiate us from the animals
+
+:::
+
+::: {.column width="60%"}
+![](images/fooldog.jpeg){fig-align="center"}
+:::
+:::::
+
 
 # Overview
 ## Note
@@ -437,21 +455,6 @@ clean_walk|>
 :::
 
 # Part 2: What is the goal of uncertainty visualisation?
-
-
-## What is the goal of uncertainty visualisation?
-
-::::: columns
-::: {.column width="40%"}
-- We want to visualise uncertainty in a way that is statistically sensible
-- Statistical properties are what differentiate us from the animals
-
-:::
-
-::: {.column width="60%"}
-![](images/fooldog.jpeg){fig-align="center"}
-:::
-:::::
 
 ## What is visualisation?
 A continuous functions that maps distance in our data to a visual representation
@@ -1209,39 +1212,19 @@ p3 + p4
 
 # Part 4: Verifying that the plots work
 ```{r, setup-part4}
+
 source("code/gen_functions.R") # in render
 
-dist_5x5 <- parent_dists |>
-  ggplot(aes(xdist = dist, colour = group)) +
-  
-  # Visualise parent distribution
-  stat_slab(scale = 0.3, fill=NA, 
-            linewidth=2, alpha=0.6,
-            aes(y=-0.35)) +
-  geom_hline(yintercept = -0.35, colour = "black") +
-  
-  # Visualise Estimate Distribution
-  stat_slab(data = estimate_dists, normalize = "panels",
-            fill=NA, linewidth=0.1, alpha=0.7) + 
-  geom_hline(yintercept = 0, colour = "black") +
-  
-  # Visualise Cumultive Distributions
-  # Haven't done yet
-  
-  # Other visual changes
-  facet_grid(rows = vars(V), cols = vars(D), as.table = FALSE,
-             scales = "free") +
-  scale_colour_manual(values = pal) +
-  theme_void() +
-  labs(y = "f(X)", x = "X") +
-  theme_void() +
-  labs(y = "f(X)", x = "X") +
-  theme(aspect.ratio = 1,
-        legend.position = "none",
-        strip.background = element_blank(),
-        strip.text.y = element_blank(),
-        strip.text.x = element_blank())
+# load raw theoretical data
+load("data/bigpvalues.rda")
 
+# make into a compatible format
+theory_data_plot <- bigpvalues |>
+ mutate(reject = pvalue <= mean(h0_true$alpha)) |>
+ filter(drawID<=10) |>
+ select(D, V, reject) |>
+ mutate(plot_type = "Theoretical")  |>
+ rename("correct_original" = reject)
 ```
 
 ## Am I bad at my job?{.smaller}
@@ -1396,13 +1379,83 @@ Grid of distance and variance of estimates
 ::::: columns
 ::: {.column width="50%"}
 
-![](images/dist_5x5.png){fig-align="center"}
+```{r}
+
+set.seed(731)
+# generate data
+D = c(0,1,2,3,4)
+V = c(1,2,3,4,5)
+Dlab = D
+Vlab = V
+
+# make data for plotting
+parent_dists <- expand_grid(D, V) |>
+  mutate(Background = dist_normal(-0.5*D, 1),
+         Number = dist_normal(0.5*D, 1)) |>
+    pivot_longer(cols = Background:Number,
+               names_to = "group",
+               values_to = "dist") 
+
+estimate_dists <- gen_data(D, V, parentV = 1, noiseV = 0, number = 2) |>
+  mutate(group = ifelse(group=="out", "Background", "Number")) |>
+  group_by(D, V, group) |>
+  slice_sample(n = 20) |>
+  ungroup() |>
+  rename("dist" = "estimate_dist") 
+
+# set colours
+pal <- colour("high contrast")(3)[c(2,1)]
+
+# plot distributions
+parent_dists |>
+  ggplot(aes(xdist = dist, colour = group)) +
+  
+  # Visualise parent distribution
+  stat_slab(scale = 0.3, fill=NA, 
+            linewidth=1, alpha=0.5,
+            aes(y=-0.35)) +
+  geom_hline(yintercept = -0.35, colour = "black") +
+  
+  # Visualise Estimate Distribution
+  stat_slab(data = estimate_dists, normalize = "panels",
+             fill=NA, linewidth=0.2, alpha=0.3) + 
+  labs(y = "Standard Deviation (V)", x = "Distance (D)") +
+  geom_hline(yintercept = 0, colour = "black") +
+  
+  # Other visual changes
+  scale_colour_manual(name = "Group", values = pal) +
+  facet_grid(rows = vars(V), cols = vars(D), as.table = FALSE,
+             scales = "free", switch = "both") +
+  theme_minimal() +
+  theme(aspect.ratio = 1, 
+        text = element_text(size = 15),
+        panel.grid = element_blank(),
+        axis.text = element_blank(),
+        legend.position = "bottom")
+
+```
 
 :::
 
 ::: {.column width="50%"}
 
-![](images/theorytile.png){fig-align="center"}
+```{r}
+# make into plot
+theory_data_plot |>
+ select(D, V, correct_original, plot_type) |>
+ ggplot(aes(x=D, y=V))+
+ geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.3,
+             aes(colour = correct_original)) +
+ theme_bw() +
+ theme(legend.position = "bottom",
+       legend.direction = "horizontal",
+       aspect.ratio=1) +
+ labs(x = "Distance (D)",
+      y = "Standard Deviation (V)",
+      colour = "Correct number selected")
+
+```
+
 :::
 :::::
 
@@ -1416,7 +1469,30 @@ Grid of distance and variance of estimates
 
 
 ## Significance levels
-![](images/sigtest.png){fig-align="center"}
+```{r}
+load("data/combined.rda")
+
+studydata_av <- study_data |>
+  filter(correct_number == "No number visible") |>
+  group_by(plot_type) |>
+  summarise(alpha = length(correct[!correct])/length(correct))
+p1 <- combined |>
+  ggplot() +
+  geom_vline(xintercept = 0.05, colour="black", linetype = 2) +
+  geom_quasirandom(aes(x = alpha, y = plot_type, colour = plot_type), 
+                   alpha=0.01) +
+  geom_point(data=studydata_av, aes(x = alpha, 
+                                    y = plot_type, 
+                                    colour = plot_type), 
+             size=4) +
+  theme_classic() +
+  theme(aspect.ratio = 1,
+        legend.position = "none") +
+  labs(x = "Significance level",
+       y = "") 
+
+p1
+```
 
 ## Choropleth - data
 ::::: columns
@@ -1428,7 +1504,24 @@ Grid of distance and variance of estimates
 
 ::: {.column width="50%"}
 
-![](images/chorotile.png){fig-align="center"}
+```{r}
+# make into plot
+study_data |>
+filter(plot_type == "Choropleth") |>
+ select(D, V, correct_original, plot_type) |>
+ ggplot(aes(x=D, y=V))+
+ geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
+             aes(colour = correct_original)) +
+ theme_bw() +
+ theme(legend.position = "bottom",
+       legend.direction = "horizontal",
+       aspect.ratio=1) +
+ labs(x = "Distance (D)",
+      y = "Standard Deviation (V)",
+      colour = "Correct number selected") +
+  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
+
+```
 
 :::
 :::::
@@ -1490,7 +1583,24 @@ glmer_models |>
 
 ::: {.column width="50%"}
 
-![](images/bivartile.png){fig-align="center"}
+```{r}
+# make into plot
+study_data |>
+filter(plot_type == "Bivariate") |>
+ select(D, V, correct_original, plot_type) |>
+ ggplot(aes(x=D, y=V))+
+ geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
+             aes(colour = correct_original)) +
+ theme_bw() +
+ theme(legend.position = "bottom",
+       legend.direction = "horizontal",
+       aspect.ratio=1) +
+ labs(x = "Distance (D)",
+      y = "Standard Deviation (V)",
+      colour = "Correct number selected") +
+  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
+
+```
 
 :::
 :::::
@@ -1541,7 +1651,24 @@ glmer_models |>
 
 ::: {.column width="50%"}
 
-![](images/vsuptile.png){fig-align="center"}
+```{r}
+# make into plot
+study_data |>
+filter(plot_type == "VSUP") |>
+ select(D, V, correct_original, plot_type) |>
+ ggplot(aes(x=D, y=V))+
+ geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
+             aes(colour = correct_original)) +
+ theme_bw() +
+ theme(legend.position = "bottom",
+       legend.direction = "horizontal",
+       aspect.ratio=1) +
+ labs(x = "Distance (D)",
+      y = "Standard Deviation (V)",
+      colour = "Correct number selected") +
+  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
+
+```
 
 :::
 :::::
@@ -1592,7 +1719,24 @@ glmer_models |>
 
 ::: {.column width="50%"}
 
-![](images/pixeltile.png){fig-align="center"}
+```{r}
+# make into plot
+study_data |>
+filter(plot_type == "Pixel") |>
+ select(D, V, correct_original, plot_type) |>
+ ggplot(aes(x=D, y=V))+
+ geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
+             aes(colour = correct_original)) +
+ theme_bw() +
+ theme(legend.position = "bottom",
+       legend.direction = "horizontal",
+       aspect.ratio=1) +
+ labs(x = "Distance (D)",
+      y = "Standard Deviation (V)",
+      colour = "Correct number selected") +
+  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
+
+```
 
 :::
 :::::
@@ -1643,7 +1787,24 @@ glmer_models |>
 
 ::: {.column width="50%"}
 
-![](images/transtile.png){fig-align="center"}
+```{r}
+# make into plot
+study_data |>
+filter(plot_type == "Transparency") |>
+ select(D, V, correct_original, plot_type) |>
+ ggplot(aes(x=D, y=V))+
+ geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
+             aes(colour = correct_original)) +
+ theme_bw() +
+ theme(legend.position = "bottom",
+       legend.direction = "horizontal",
+       aspect.ratio=1) +
+ labs(x = "Distance (D)",
+      y = "Standard Deviation (V)",
+      colour = "Correct number selected") +
+  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
+
+```
 
 :::
 :::::
