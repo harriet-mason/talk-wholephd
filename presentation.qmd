@@ -10,7 +10,6 @@ embed-resources: true
 editor_options: 
   chunk_output_type: console
 title-slide-attributes:
-  data-background-image: images/gglogo1.jpg
   data-background-size: contain
   data-background-opacity: "0.2"
   smaller: true
@@ -178,6 +177,7 @@ Before the competition started, I searched up the most accurate and cost effecti
 Our department decides to do a visualisation challenge of the walktober data
 
 ```{r}
+#| fig-height: 4
 #| fig-align: center
 
 # Plot0A
@@ -202,12 +202,13 @@ p1 + p2 +
   theme(plot.background = element_blank())
 ```
 
-## This sounds annoying. Should I just ignore it? 
+## ...Should I just ignore the uncertainty? {.smaller}
 
 ::: {.incremental}
-- But I did all that reading about pedometers!!! 
-- Other reasons not to ignore uncertainty
-  - Failing to include it is akin to fraud! [@Hullman2020a; Manski2020]
+- This seems like it is going to be a lot of work
+  - But I did all that reading about pedometers!!! 
+- Other sentiments around uncertainty:
+  - Failing to include it is akin to fraud! [@Hullman2020a; @Manski2020]
   - Conveys the legitimacy (or illegitimacy) of conclusions [@Kale2018; @Griethe2006]
   - Communicate confidence [@Correll2018; @Boukhelifa2017]
   - Communicate validity [@Hullman2020a; @Griethe2006]
@@ -217,12 +218,11 @@ p1 + p2 +
 ::: 
 
 ## Signal Modulation
-- Visualisations should provide a quick "gist" of information [@Spiegelhalter2017]
-  - i.e. *NO CALCULATIONS* 
 - **Signal modulation**: statistical validity translates to perceptual ease
   - The higher the variance on an estimate, the harder that estimate is to extract from the plot
 
 ![](images/signoise.jpeg){fig-align="center"}
+
 
 ## In statistics jargon?
 
@@ -230,7 +230,7 @@ p1 + p2 +
 ::: {.column width="40%"}
 :::: {.incremental}
 
-- Statistical properties are what differentiate us from the animals
+Statistical properties are what differentiate us from the animals
 
 ::::
 
@@ -244,15 +244,18 @@ p1 + p2 +
 
 
 ## A visual hypothesis test
-Our visualisation should have behaviour similar to a hypothesis test [@Correll2018; @MacEachren1992] or a Bayesian posterior probability [@Kim2019]
+Our visualisation should have behaviour similar to
+  - a hypothesis test [@Correll2018; @MacEachren1992] or 
+  - a Bayesian posterior probability [@Kim2019]
 
 ![](images/goodtest.jpeg){fig-align="center"}
 
 
-## Where are we going? {.smaller}
-Making an uncertain version of these plots, with these properties, is the goal of this talk
+## OK, Fine! {.smaller}
+I won't ignore it, we will make an uncertain version of these plots.
 
 ```{r}
+#| fig-height:  4
 #| fig-align: center
 
 p1 + p2 + 
@@ -260,27 +263,33 @@ p1 + p2 +
   theme(plot.background = element_blank())
 ```
 
-# Overview
-## Note
-- This talk is based on three papers
-  - [@phd_chap1]{.bibentry}
-  - [@phd_chap2]{.bibentry}
-  - [@phd_chap3]{.bibentry}
   
 ## Overview
 This is going to be the focus of todays talk. We are going to go over:
 
-- Part 1: What is uncertainty?
-- Part 2: What is a visualisation?
-- Part 3: How to (safely) make uncertainty visualisations in `ggdibbler`
-- Part 4: Do these plots work?
+- Part 1: What is uncertainty? [@phd_chap1]
+- Part 2: What is a visualisation? [@phd_chap2]
+- Part 3: How to (safely) make uncertainty visualisations in `ggdibbler` [@phd_chap2]
+- Part 4: Do these plots work? [@phd_chap3]
 
 # Part 1: What is uncertainty?
 
-## Word association olympics
-Rather than a strict definition, uncertainty is often described using a word salad
+## The word association Olympics {.smaller}
+
+:::: {.incremental}
+
+- No definition, just a word salad 
+- Can nobody tell me what uncertainty *IS*?
+- How can you visualise something you can't even define? 
+
+::::
 
 ```{r}
+#| fig-height: 2
+#| fig-width: 3
+#| fig-align: center
+#| column: screen-inset
+
 # Set seed for appearance of plot
 set.seed(3)
 
@@ -322,26 +331,16 @@ ggplot(df_words,
   theme_minimal()
 ```
 
-## These words are all related {.smaller}
-
-:::: {.incremental}
-- Uncertainty is *not* any of these things individually
-  - e.g. variance is not uncertainty, variability covers multiple different known values, uncertainty means we don't know the value
-- It seems that nobody can actually tell me what uncertainty IS
-- How can you visualise something you can't even define? This field doesn't make any sense.
-
-::::
-
- 
 
 ## If you are me...
-You decide the entire field is fake and not worth working on
+You decide the entire field is fake and not worth working on 
+
 
 ![](images/fake1.jpg){fig-align="center"}
 
 
-## If you are me...
-But your PhD is externally funded with a set topic
+## But...
+Your PhD is externally funded with a set topic
 
 ![](images/fake2.jpg){fig-align="center"}
 
@@ -354,41 +353,40 @@ But your PhD is externally funded with a set topic
 ::: 
 
 
-## Statistics philosophy? [@Otsuka2023] {.smaller}
+## Statistics philosophy? {.smaller}
 ::::: columns
 ::: {.column width="50%"}
-::: {.incremental}
-- In nineteenth-century England, positivism was all the rage
-  - They only did descriptive statistics
-  - Decriptive statistics do not require us to reference the *unknown*
-  - They thought referencing the unknown was *bad science*
-  
-::: 
 
-
-
+![](images/positivism1.jpg){fig-align="center"}
   
 :::
 
 ::: {.column width="50%"}
 
-![](images/positivism1.jpg){fig-align="center"}
+::: {.incremental}
+- In nineteenth-century England, positivism was all the rage
+  - Posivitists do not believe in referencing the "unknown", as it is *bad science* [@Otsuka2023]
+  - Therefore they only do descriptive statistics
+  - Descriptive statistics summarise, they report things as they are without looking beyond the data
+  
+::: 
 
 :::
 :::::
 
 
-## Statistics philosophy? [@Otsuka2023] {.smaller}
+## Statistics philosophy? {.smaller}
 ::::: columns
 ::: {.column width="50%"}
 
 :::: {.incremental}
-- What alternative references the unobservable? **Inference**
-  - Includes: discussions about future values, population parameters, new observations
-- Inference requires a key assumption: *The uniformity of nature*
-  - Assume that the observations we have are similar to the ones we do not have
-  - Violating (or possibly violating) this assumption creates uncertainty
-- Uncertainty is the price we pay for looking beyond what we know for certain
+- What's the alternative?  **Inference**
+  - discussions about future values
+  - population parameters
+  - new observations
+- Requires a key assumption: *The uniformity of nature* [@Otsuka2023]
+  - Assume the observations we have are similar to the ones we do not have
+  - Violating this assumption creates uncertainty
 
 :::: 
 
@@ -401,32 +399,38 @@ But your PhD is externally funded with a set topic
 :::
 :::::
 
-## Am I just being annoying right now? 
+## Yes. And?
 :::: {.incremental}
-- What is the point of this? 
-- The implication of this is that uncertainty requires a *direction of inference*
-- What about something like *missing values*? 
-  - They are not, in and of themselves "uncertain" 
-  - They *create* uncertainty when we perform inference 
-- Basically, we need something to be uncertain about
+- This means that uncertainty is a product of inference
+  - Without inference we have no uncertainty 
+    - (*We need something to be uncertain about*)
+  - We cannot have inference without uncertainty 
+    - (*If we look beyond our data, we can never know for sure*)
 
 :::: 
 
+## Sure. But?
+:::: {.incremental}
 
+- What about something like *missing values*? 
+  - They are not, in and of themselves "uncertain" 
+  - They *create* uncertainty when we perform inference 
+- Missing values without inference are "unquantified uncertainty"
 
-## Quantified vs unquantified uncertainty {.smaller}
+:::: 
+
+## Example: missing values {.smaller}
 ::::: columns
 ::: {.column width="50%"}
 
 :::: {.incremental}
-- This distinction is basically quantified vs unquantified uncertainty
-- Unquantified uncertainty *can* be visualised, they are assumption checks
+- Unquantified uncertainty = assumption checks
   - e.g. Normality? Use a `qqplot`
   - e.g. Missing values? use `naniar`[@Tierney2023]
-- In this example, what is the point of the missing values?
-  - Why are we even looking at this?
-  - The data *missing not at random (MNAR)*, so what?
-- I have nothing to be uncertain about. I am just looking at facts.
+- What is the point of the missing values?
+  - There is nothing uncertain here
+  - The data is *missing not at random (MNAR)*, so what?
+  - It doesn't create uncertainty until I do inference 
 
 :::: 
 
@@ -435,6 +439,10 @@ But your PhD is externally funded with a set topic
 ::: {.column width="50%"}
 
 ```{r}
+#| fig-width: 4
+#| fig-align: center
+
+
 set.seed(4)
 n = 100
 myseq <- seq(from = -1, to = 1, length.out = n)
@@ -463,11 +471,6 @@ p1 <- ggplot(miss_data,
   labs(title = "Do your conclusions change?",
        subtitle = "naniar geom_miss_point()") 
 
-# p2 <- ggplot(miss_data,
-#        aes(x = x, y = y)) +
-#  geom_point(colour = "firebrick2") +
-#   theme_minimal()
-
 p1
 
 ```
@@ -475,15 +478,16 @@ p1
 :::
 :::::
 
-## Quantified vs unquantified uncertainty {.smaller}
+## Example: missing values {.smaller}
 ::::: columns
 ::: {.column width="50%"}
  
 :::: {.incremental}
-- You might be thinking "Well how do I know if the pattern I see if real"
-  - What pattern? Do you mean the smoothed line?
-- Including the missing values does not magically change your understanding of the pattern
-  - Your confidence interval will not magically adjust
+- "Well, how do I know if the pattern I see if real" - You, right now probably
+  - What pattern? 
+  - Do you mean the smoothed line you were probably drawing in your head?
+  - Visualising missing values won't magically change the confidence intervals
+  - It can make you aware of a problem, it won't fix it
 - Adjusting your conclusions requires uncertainty to be visualised as noise
 - Visualising uncertainty as *noise* requires it to be quantified
     
@@ -494,6 +498,8 @@ p1
 ::: {.column width="50%"}
 
 ```{r}
+#| fig-width: 4
+#| fig-align: center
 
 p1 + geom_smooth(colour = "orchid", fill = "orchid1", alpha=0.2)
 
@@ -502,40 +508,54 @@ p1 + geom_smooth(colour = "orchid", fill = "orchid1", alpha=0.2)
 :::
 :::::
 
-## Then what uncertainty are we visualising?
+## Where is the uncertainty coming from? {.smaller}
 ::: {.incremental}
-- Visualisation is used for exploratory data analysis
-  - Exploration is the process of "searching" for hypothesis
-- We cannot quantify uncertainty for a hypothesis we haven't thought of yet
-  - It would violate causality
-- Therefore, the only source of uncertainty in a visualisation is the data
+- Visualisation is used for exploratory data analysis (EDA)
+- Only two points where inference can occur
+  1. The data itself (i.e. we are visualising estimates) 
+  2. The conclusions we draw from the plot (i.e. visual inference)
+- **Qncertainty can only come from the data**
 
 ::: 
 
-## So... um... what are we visualising?
+![](images/whateda.jpg){fig-align="center"}
+
+## To summarise {.smaller}
 
 ::: {.incremental}
 - At some point in our analysis we perform *inference* and created *estimates*
 - We *quantify* the uncertainty in these estimates by representing them as *probability distributions*
   - "Anything worth doing is worth doing poorly" - G. K. Chesterton
-  - A good rule of thumb 
-    - Identifying potential deviations = field expert
-    - Quantifying those deviations = statistician
 - A table of probability distributions is a *random matrix*
 
 ::: 
 
+![](images/makedata.jpg){fig-align="center"}
 
-## We actually often have this kind of data
-- This data covers cases where we have...
+## We frequently have this kind of data {.smaller}
+::: {.incremental}
+We see this when our data is...
 
-  - Unavailable - anonymised data, measurement error, etc.
-  - Non-deterministic - bounded data, estimated values, etc.
-  - Theoretical - latent variables, calculations from theory, etc.
-  - Abstract - based on expert opinion or credibility
+- Unavailable 
+  - anonymised data, measurement error, etc.
+- Non-deterministic 
+  - bounded data, estimated values, etc.
+- Theoretical 
+  - latent variables, calculations from theory, etc.
+- Abstract 
+  - based on expert opinion or credibility
+  
+:::
+
+
 
 ## Make this data using distributional {.smaller}
 
+::: {.incremental}
+- Include pedometer uncertainty with `distributional`
+  - Thank you Mitch, Matt, Alex, and Rob
+  - This is not a talk on `distributional`
+  
 ```{r}
 clean_walk|> 
   as_tibble() |>
@@ -543,12 +563,9 @@ clean_walk|>
   head(4) 
 ```
 
-::: {.incremental}
-- Include pedometer uncertainty with `distributional`
-  - Thank you Mitch, Matt, Alex, and Rob
-  - This is not a talk on `distributional`
 - Our walktober examples are truncated normal distributions
   - The "prior inference" comes from measurement error (i.e. what is my *true* step count, not the *recorded* step count)
+- Now that we know what uncertainty *is* how do we visualise it?
   
 :::
 
@@ -561,12 +578,11 @@ It's a picture
 
 ![](images/adam2.jpg){fig-align="center"}
 
-## What is a visualisation?
+## It's not that simple
 
 ::::: columns
 ::: {.column width="50%"}
 :::: {.incremental}
-- It's not exactly that simple
 - What is the essence a visualisation? What is it trying to do?
 - The `plotscaper` paper made this point really well [@Bartonicek2025]
 :::: 
@@ -580,7 +596,7 @@ It's a picture
 :::
 :::::
 
-## A graphic is a map between data visualisation and visual representation
+## A graphic is a map between data and visual representation
 
 ```{r}
 #| include: false
@@ -601,61 +617,70 @@ ggplot(df) +
 ## The Treachery of Images
 These are not data visualisations, there is no data
 
-- This is what differentiates data visualisation from drawings
+- These are drawings
 
 ![](images/adam2.jpg){fig-align="center"}
 
 
-## Visualisations are continuous functions {.smaller}
+## Take it one step further {.smaller}
+
 :::: {.incremental}
--  Take it one step further - visualisations should be continuous function
-  - A small change in our data, should result in a small change to our visualisation
+Visualisations are continuous functions
+
+- A small change in our data, should result in a small change to our visualisation
 - A lot of perception research is implicitly based on this assumption 
     - e.g. checking if colour pallets warp the space, etc.
-
+    
 :::: 
 
 ![](images/visualfunction.jpeg){fig-align="center"}
 
-
-  
 ## Wait a second....
-Earlier we said uncertainty visualisations have a *random matrix input*...
+![](images/gears.jpeg){fig-align="center"}
+
+
+## Wait a second....
+If uncertainty visualisations have a *random matrix input*...
 
 ![](images/replace.jpeg){fig-align="center"}
 
 
 ## Wait a second....
-... So if a visualisation is a continuous function...
+... and a visualisation is a continuous function...
 
 ![](images/visualfunction.jpeg){fig-align="center"}
 
 
 ## Wait a second....
-...then shouldn't it follow continuous mapping theorem? [@mann_wald]?
+...then shouldn't they follow continuous mapping theorem? [@mann_wald]?
 
 ![](images/visualcmt.jpeg){fig-align="center"}
 
-## Therefore
-Uncertainty visualisations should adhere to continuous mapping theorem
+## Properties V(X) 
+Visualisations should adhere to continuous mapping theorem
 
 
 ```{r}
-
+#| fig-height: 5
+#| fig-align: center
+#
 p1 <- ggplot(faithfuld, aes(waiting, eruptions)) + 
   geom_raster(aes(fill = density)) +
   scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        aspect.ratio = 1)
 
 p2 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
   geom_raster_sample(aes(fill = density)) +
   scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
-  theme(legend.position = "bottom")
+  theme(legend.position = "bottom",
+        aspect.ratio = 1)
 
 p3 <- ggplot(uncertain_faithfuld, aes(waiting, eruptions)) + 
   geom_raster_sample(aes(fill = density2)) +
   scale_fill_continuous_sequential(palette = "Terrain", rev = FALSE) +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom",
+        aspect.ratio = 1) +
   labs(fill = "density")
 
 pv <- ggplot() +
@@ -671,24 +696,28 @@ pv / (p3 | p2 | p1 )
 
 ```
 
-## Is this ANOTHER metric?
+## Is this ANOTHER metric? {.smaller .nostretch}
 
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="40%"}
 :::: {.incremental}
-- This is actually just another way of thinking about our original goal
-- Variance can be described as the consequence of looking at our data at "too high a resolution" [@Meng2014]
-- When we incorperate the uncertainty in this data, we literally reduce the resolution
-  - points beccome area, size becomes fuzziness, etc.
-- This makes the "nosier" values harder to extract - which was our goal!
+- It's just our original goal in a suit
+- We get variance when our data is at "too high a resolution" [@Meng2014]
+- In visualisation, this interpretation is very literal 
+  - e.g. points become area reducing the resolution
+- Precision loss makes the "nosier" values harder to extract
   
 :::: 
 
 :::
 
-::: {.column width="50%"}
+::: {.column width="60%"}
 
 ```{r}
+#| fig-height: 5
+#| fig-width: 5
+#| fig-align: center
+
 
 # make factors consistent across plots
 new_factor <- function(cly) {
@@ -697,7 +726,7 @@ new_factor <- function(cly) {
 cars_data <- uncertain_mtcars |>
   mutate(cyl = dist_transformed(cyl, new_factor, as.numeric))
 
-ggplot(data = uncertain_mtcars) +
+p_bias <- ggplot(data = uncertain_mtcars) +
   geom_point_sample(aes(x=mpg, y=wt, 
                         colour = dist_transformed(cyl, as.factor, as.numeric)),
                     times=1000, alpha=0.1, size = 0.1) +
@@ -706,9 +735,10 @@ ggplot(data = uncertain_mtcars) +
   ggtitle("Example: uncertain mtcars data")  + 
   labs(x = "Miles per gallon (mpg)", 
        y = "Weight (wt)") +
-  guides(color = guide_legend(override.aes = list(alpha = 1))) +
-  theme(legend.position = "bottom")
-
+  guides(color = guide_legend(override.aes = list(alpha = 1, size = 1))) +
+  theme(legend.position = "bottom",
+        aspect.ratio = 1)
+p_bias
 ```
 
 :::
@@ -719,22 +749,21 @@ ggplot(data = uncertain_mtcars) +
 
 
 
-## Wait a minute...
+## Hold up...
 :::: {.incremental}
-- Doesn't convergence require a definition of distance? What even *is* convergece in visualisation?
+- Doesn't convergence require a definition of distance? 
   - Yes
-- This requires us to define a metric for the space of statistical graphics
-- Thankfully, existing research has already established an implicit metric
+- Thankfully, there is already a metric implied by existing research
   - **Visual distinguishability** 
 - This is most obvious in research on the lineup protocol [@Buja2009]
   
 ::::
 
-## What is the lineup protocol?
+## What is the lineup protocol? {.smaller .nostretch}
 ::::: columns
-::: {.column width="60%"}
+::: {.column width="50%"}
 :::: {.incremental}
-- To explain what the lineup protocol is, I am going to use an example from @Chowdhury
+- Lets look at an example from @Chowdhury
 - Researchers have a dataset of wasp gene expression
   - 4 groups - Foundress (F), Gyne (G), Queen (Q) and Worker (W)
   - 447 variables, randomly selected 40
@@ -746,9 +775,14 @@ ggplot(data = uncertain_mtcars) +
 
 :::
 
-::: {.column width="40%"}
+::: {.column width="50%"}
 
 ```{r}
+#| fig-height: 5
+#| fig-width: 5
+#| fig-align: center
+
+
 # Generate true data from lineup protocol
 data(wasps)
 
@@ -758,7 +792,9 @@ true <- data.frame(wasp.ld, Group=wasps$Group)
 
 ggplot(true, aes(x=LD1, y=LD2, colour=Group)) + 
   geom_point() + 
-  theme(aspect.ratio=1) +
+  theme_minimal() +
+  theme(aspect.ratio=1,
+        legend.position = "bottom") +
   scale_color_gdocs()
 ```
 
@@ -767,14 +803,14 @@ ggplot(true, aes(x=LD1, y=LD2, colour=Group)) +
 
 
 
-## What is the lineup protocol?
+## What is the lineup protocol? {.smaller .nostretch}
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="40%"}
 :::: {.incremental}
 - A lineup protocol is a kind of visual hypothesis test introduced by @Buja2009
 
   - You have a visual function, $V$, that you use to generate a plot
-  - You generate 19 plots from some null distribution, 
+  - You also generate 19 plots from some null distribution, 
   - You generate 1 plot from your true data
   - If you can identify the true plot, you reject the null hypothesis
   
@@ -782,9 +818,12 @@ ggplot(true, aes(x=LD1, y=LD2, colour=Group)) +
 
 :::
 
-::: {.column width="50%"}
+::: {.column width="60%"}
 
 ```{r}
+#| fig-height: 5
+#| fig-width: 5
+#| fig-align: center
 # Generate lineup protocol plot
 wasp.sim <- data.frame(LD1=NULL, LD2=NULL, Group=NULL, .n=NULL)
 for (i in 1:19) {
@@ -801,7 +840,10 @@ d <- lineup(true=true, samples=wasp.sim, pos=pos)
 
 ggplot(d, aes(x=LD1, y=LD2, colour=Group)) + 
   facet_wrap(~.sample, ncol=5) +
-  geom_point() + theme(aspect.ratio=1) +
+  geom_point() + 
+  theme_minimal() +
+  theme(aspect.ratio=1,
+        legend.position = "bottom") +
   scale_color_gdocs()
 ```
 
@@ -814,7 +856,8 @@ ggplot(d, aes(x=LD1, y=LD2, colour=Group)) +
 ::::: columns
 ::: {.column width="40%"}
 
-- Lineups (and visualisation more broadly) implicitly use visual distinction (or discernability) as distance. 
+- Lineups implicitly use visual distinction (or discernability) as distance. 
+  - This sentiment is implicit in visualisation more broadly
 - The lineup employs a Malhalobis distance version of this metric
   - This makes sense as it is a visual version of a statistical test
 
@@ -827,14 +870,25 @@ ggplot(d, aes(x=LD1, y=LD2, colour=Group)) +
 :::
 :::::
 
-## Distinguishability in uncertainty
+## Distinguishability in uncertainty {.smaller .nostretch}
+::::: columns
+::: {.column width="40%"}
+:::: {.incremental}
 - Uncertainty is more like a confidence interval than a hypothesis test
   - The "null" hypothesis is often in our head
   - The notion of an "interesting" pattern is learned
 - In our uncertain version of the LDA example, can you *see* a separation between the groups?
+  
+:::: 
+
+:::
+
+::: {.column width="60%"}
 
 ```{r}
-
+#| fig-height: 5
+#| fig-width: 5
+#| fig-align: center
 
 # Boostrapped wasp data
 b <- 500 
@@ -868,32 +922,49 @@ ggplot(dist_d, aes(x=LD1, y=LD2, colour=group)) +
 
 ```
 
+:::
+:::::
 
-## Translating this to convergence
-- This allows us to define convergence
-- A visualisation has converged to another when they are visually indistinguishable from one another. 
-- Neat!
+
+## Visual convergence
+Two visualisations have converged when they are visually indistinguishable.
+
+```{r}
+p1 <- p_bias + ggtitle("Rendering 1")
+p2 <- p_bias + ggtitle("Rendering 2")
+p1 + p2
+```
 
 # Part 3: How to (safely) make uncertainty visualisations in `ggdibbler`
 
-## Whoopsie daisy
+## Whoopsie
 Breaking the data-visual connection is shockingly easy
 
 ![](images/link2.jpg){fig-align="center"}
 
 
 ## It happens all the time...
-- This is an example from the grammar of graphics "textbook"
+- This is an example from *the grammar of graphics* [@Leland2005]
 - What are we uncertain about, exactly?
 
 ![](images/gogblur.png){fig-align="center"}
 
-## What an uncertain letter should look like
+## What an uncertain letter should look like  {.smaller .nostretch}
+
+::: {.incremental}
 - If the letter isn't A it must be *something* else, right? What?
   - Another letter (or a space)
 - Uncertainty as a "vibe" might as well be a drawing.
+  
+::: 
+
+
 
 ```{r}
+#| fig-height: 3
+#| fig-width: 8
+#| fig-align: center
+
 set.seed(10)
 textdata <- expand_grid(x = c(1,2,3,4,5), y = 1) |>
   mutate(z0 = rep("A", 5)) |>
@@ -905,28 +976,38 @@ textdata <- expand_grid(x = c(1,2,3,4,5), y = 1) |>
   )
 
 ggplot(textdata, aes(x=x, y=y, lab=z2)) +
-  geom_text_sample(aes(label = after_stat(lab)), 
+  geom_text_sample(aes(label = after_stat(lab)), colour = "steelblue",
                    size=20, alpha=1/30, times=30) +
   theme_void() +
   theme(aspect.ratio = 1, legend.position = "none") 
 ```
 
 ## This mistake is too easy to make
-- Therefore, I want to make software that makes uncertainty visualisation easy and avoids this pitfall
-- A `ggplot2` extension that does this for every `geom` & `stat`
+::: {.incremental}
+- Good software should help us avoid this pitfall
+- Ideally, we have a `ggplot2` extension that does this for every `geom` & `stat`
   - Use `ggplot2` code so people don't have to learn new syntax
-- Call this package `ggdibbler`
+  - If you don't use `ggplot2`, sorry
+  
+::: 
 
-## The visualisation stays the same
-The visual function does not change, only the input changes
 
-![](images/replace.jpeg){fig-align="center"}
+
+## Call this package `ggdibbler`
+![](images/nameggdibbler.jpeg){fig-align="center"}
+
+
 
 ## Main idea of the package
-Therefore, every `ggdibbler` plot should have a `ggplot2` plot as it's deterministic convergence, and vice versa
+Every `ggdibbler` plot should have a `ggplot2` counterpart, and vice versa
 
 ![](images/visualconvergence.jpeg){fig-align="center"}
 
+
+## The visualisation stays the same
+We want to communicate that only the input changes
+
+![](images/replace.jpeg){fig-align="center"}
 
 ## Minds eye code
 The function is the same. The input that different
@@ -955,10 +1036,9 @@ ggplot(random_data) +
 ::::: columns
 ::: {.column width="50%"}
 ::: {.incremental}
-- Represent as a set of samples from the random matrix
-- Only distribution representation that can be subbed into any `ggplot2` function
+- Can only represent a random matrix as a set of samples
   - Mean/median brings us back to the original problem
-  - PDF leads to the geom_rug problem
+  - PDF changes the visual function (the limit is different)
   - Quantiles need an ordering (problem in figure)
   
 ::: 
@@ -1004,7 +1084,8 @@ q1 <- qdf |>
   scale_colour_continuous_sequential(palette = "Batlow") +
   scale_x_continuous_distribution(limits = c(-2,2)) +
   scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("a. quantile: intercept") 
+  ggtitle("a. quantile: intercept")  +
+  theme(aspect.ratio = 1)
 
 q2 <- sdf |>
   ggplot() + 
@@ -1013,7 +1094,8 @@ q2 <- sdf |>
   scale_colour_continuous_sequential(palette = "Batlow") +
   scale_x_continuous_distribution(limits = c(-2,2)) +
   scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("b. sample: intercept") 
+  ggtitle("b. sample: intercept") +
+  theme(aspect.ratio = 1)
 
 q3 <- qdf |>
   ggplot() + 
@@ -1022,7 +1104,8 @@ q3 <- qdf |>
   scale_colour_continuous_sequential(palette = "Batlow") +
   scale_x_continuous_distribution(limits = c(-2,2)) +
   scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("c. quantile: intercept, slope") 
+  ggtitle("c. quantile: intercept, slope") +
+  theme(aspect.ratio = 1)
 
 q4 <- sdf |>
   ggplot() + 
@@ -1031,7 +1114,8 @@ q4 <- sdf |>
   scale_colour_continuous_sequential(palette = "Batlow") +
   scale_x_continuous_distribution(limits = c(-2,2)) +
   scale_y_continuous_distribution(limits = c(-2,2)) +
-  ggtitle("d. sample: intercept, slope") 
+  ggtitle("d. sample: intercept, slope") +
+  theme(aspect.ratio = 1)
 
 
 q1 + q2 + q3 + q4 
@@ -1042,7 +1126,7 @@ q1 + q2 + q3 + q4
 :::::
 
 
-## ... and we make even simpler again
+## ... and even simpler again
 - Start off with a choropleth map, `geom_sf`
 
 ```{r}
@@ -1408,9 +1492,6 @@ ggplot(uncertain_mpg, aes(class)) +
 
 ![](images/ggdibbler.jpeg){fig-align="center"}
 
-## Flexible uncertainty visualisation! {.smaller}
-
-![](images/nameggdibbler.jpeg){fig-align="center"}
 
 
 
@@ -1449,6 +1530,14 @@ source("code/gen_functions.R") # in render
 
 # load raw theoretical data
 load("data/bigpvalues.rda")
+load("data/study_data.RData")
+
+h0_true <- study_data |>
+  filter(correct_number == "No number visible") |>
+  group_by(plot_type) |>
+  summarise(alpha = 1- mean(correct),
+            n_correct = sum(correct),
+            n_reject = sum(!correct))
 
 # make into a compatible format
 theory_data_plot <- bigpvalues |>
@@ -2088,3 +2177,5 @@ glmer_models |>
 -   AEMO Zema Energy Scholarship
 -   Australian RTP Stipend
 -   Numbat Hackathon (for the walktober data)
+
+## References
