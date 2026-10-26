@@ -81,6 +81,9 @@ library(lme4)
 library(car)
 library(janitor)
 library(naniar)
+library(datasauRus)
+library(tidygraph)
+library(ggraph)
 
 # set theme?
 # theme_set( theme_gdocs() + 
@@ -289,52 +292,110 @@ clean_walk|>
 
 ## ...Should I just ignore the uncertainty?
 
-::: {.incremental}
-- This seems like it is going to be a lot of work
-  - But I did all that reading about pedometers!!! 
-- Is that the only reason?
+::::: columns
+::: {.column width="65%"}
 
-::: 
+:::: {.incremental}
+- Including the uncertainty seems like it might be annoying
+- But which uncertainty visualisation is best?
+- And what are the benefits to including uncertainty?
 
-*(image = angel and devil on shoulder)*
+:::: 
+
+:::
+
+::: {.column width="35%"}
+
+![](images/angeldevil.jpg){fig-align="center"}
+
+:::
+:::::
+
+
+
+
 
 ## There are people who are too trusting
 
-::: {.incremental}
-- So uncertainty should...
+::::: columns
+::: {.column width="35%"}
+
+![](images/metext.jpg){fig-align="center"}
+
+:::
+
+::: {.column width="65%"}
+
+:::: {.incremental}
+- So uncertainty can...
   - Communicate confidence [@Correll2018; @Boukhelifa2017]
   - Guide, qualify or soften judgements [@Leland2005]
   
-::: 
+:::: 
+
+:::
+:::::
+
+
+
 
 *(image = me text)*
 
 ## There are also people who are not trusting at all
 
-::: {.incremental}
+::::: columns
+::: {.column width="35%"}
 
-- So uncertainty should...
-  - Conveys the legitimacy (or illegitimacy) of conclusions [@Kale2018; @Griethe2006]
+![](images/mumtext.jpg){fig-align="center"}
+
+:::
+
+::: {.column width="65%"}
+
+:::: {.incremental}
+
+- So uncertainty can...
+  - Convey the legitimacy (or illegitimacy) of conclusions [@Kale2018; @Griethe2006]
   - Communicate validity [@Hullman2020a; @Griethe2006]
   
-::: 
+:::: 
 
-*(image = mum text)*
-
-
-## There are also people who are interested in probabilites
-
-::: {.incremental}
-
-::: 
-
-*(image = alatair text)*
+:::
+:::::
 
 
 
-## The "decision making" melting pot
-We currently throw these motivations together, but are they the same?
-*(image = melting pot)*
+## There are also people who are interested in probabilities
+
+::::: columns
+::: {.column width="35%"}
+
+![](images/brotext.jpg){fig-align="center"}
+
+:::
+
+::: {.column width="65%"}
+
+:::: {.incremental}
+- So uncertainty can...
+  - also be a variable of interest, in and of itself [@Blenkinsop2000; @geointerviews]
+
+:::: 
+
+:::
+:::::
+
+
+
+
+
+
+
+
+## Into the melting pot
+Our current "decision making" framework throws these motivations together, but are they all the same?
+
+![](images/meltingpot.jpg){fig-align="center"}
 
 
 ## Signal vs noise
@@ -349,80 +410,232 @@ We currently throw these motivations together, but are they the same?
 
 
 ## This creates conflict in the literature
-::: {.incremental}
+::::: columns
+::: {.column width="35%"}
+
+![](images/idk.jpg){fig-align="center"}
+
+:::
+
+::: {.column width="65%"}
+
+:::: {.incremental}
 - Evaluating uncertainty as signal (when it is supposed to be noise) creates bizzare results in the literature
-  - e.g. studies that suggest you shouldn't visualise uncertainty as all
-  - e.g. studies that suggest including uncertainty reduces trust or confidence
+  - e.g. reviews that **questions if you should visualise uncertainty as all** [@MacEachren2005]
+  - e.g. studies that suggest **ignoring uncertainty** in high variance scenarios **improves trust** [@Zhao2023]
+  
+:::: 
 
-::: 
-
-*(image = question mark)*
+:::
+:::::
 
 ## Existing research is a bit disproportionate...
-- This problem is then exacerbated by the fact that most research evaluates uncertainty as signal...
-*(image = crushed by rocks)*
+Most research evaluates uncertainty as signal which discourages effective signal modulation approaches [@Mason2026]
+
+![](images/signalnoisestudy.jpg){fig-align="center"}
 
 
-## How has this happened?
+## My problem is noise
+
+::::: columns
+::: {.column width="35%"}
+
+![](images/mecry.jpg){fig-align="center"}
+
+:::
+
+::: {.column width="65%"}
+
+:::: {.incremental}
+- I am mostly concerned about being scammed
+- I want to visualise uncertainty as noise but I have no idea which approach works best
+- I will need to work out 
+  1. Why don't we evaluate uncertainty as noise?
+  2. Can I design an experiment that will evaluate uncertainty as noise?
+  
+:::: 
+
+:::
+:::::
+
+# How to evaluate uncertainty as noise?
+
+
+## Why is it all signal?
+
+::::: columns
+::: {.column width="50%"}
+
+:::: {.incremental}
+
+- Existing research uses explicit testing methods
 - There are two ways to evaluate a plot [@Vanderplas2020]
+  - Explicit: User is directed to the purpose of the plot with a question
+    - e.g. "What is the spatial correlation in this plot?"
+  - Implicit: User must identify the purpose of the plot
+    - "Identify the odd one out" (e.g. a lineup protocol [@Buja2009])
+  
+:::: 
 
-  - Explicit: "What is the spatial correlation in this plot?"
-  - Implicit: "Which is the odd one out" (of a lineup protocol)
 
-- If possible, you should do implicit testing
 
-## Problems with explicit tests
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| fig-height: 5
+#| fig-width: 5
+#| fig-align: center
+
+
+# Generate true data from lineup protocol
+data(wasps)
+
+wasp.lda <- lda(Group~., data=wasps[,-1])
+wasp.ld <- predict(wasp.lda, dimen=2)$x
+true <- data.frame(wasp.ld, Group=wasps$Group)
+
+# Generate lineup protocol plot
+wasp.sim <- data.frame(LD1=NULL, LD2=NULL, Group=NULL, .n=NULL)
+for (i in 1:19) {
+  x <- wasps
+  x$Group <- sample(x$Group)
+  x.lda <- lda(Group~., data=x[,-1])
+  x.ld <- predict(x.lda, dimen=2)$x
+  sim <- data.frame(x.ld, Group=x$Group, .n=i)
+  wasp.sim <- rbind(wasp.sim, sim)
+}
+
+pos <- sample(1:20, 1)
+d <- lineup(true=true, samples=wasp.sim, pos=pos)
+
+ggplot(d, aes(x=LD1, y=LD2, colour=Group)) + 
+  facet_wrap(~.sample, ncol=5) +
+  geom_point() + 
+  theme_minimal() +
+  theme(aspect.ratio=1,
+        legend.position = "bottom") +
+  scale_color_gdocs()
+```
+
+:::
+:::::
+
+## Explicit tests create problems for us
 
 1. They evaluate uncertainty as signal
 2. They violate the Ratatouille rule
 
-## Problems with explicit tests
+## Explicit tests create problems for us
 
 1. **They evaluate uncertainty as signal**
 2. They violate the Ratatouille rule
 
-## Exploring vs Inference 
-- How you instruct someone to look at a plot can literally change what they see
-- People are worse at seeing dinosaurs if you give them an explicit task
-- Giving a question fundamentally changes the way you interact with the plot
-  - Something similar happens with uncertainty
+## Exploring versus Inference 
+::::: columns
+::: {.column width="50%"}
 
-*(image = dinosaur)*
+:::: {.incremental}
+
+- The reason someone is engaging with a plot can change what they see
+  - e.g. people are worse at seeing dinosaurs if you give them an explicit task [@Boger2021]
+- A similar problem occurs in uncertainty visualisation
+  
+:::: 
+
+
+
+:::
+
+::: {.column width="50%"}
+
+```{r}
+#| fig-height: 5
+#| fig-width: 5
+#| fig-align: center
+
+ggplot(datasaurus_dozen_wide, aes(x = dino_x, y = dino_y))+
+  geom_point(colour = "steelblue") +
+  labs(x = "X", y = "Y") +
+  theme_classic() +
+  theme(aspect.ratio=1)
+```
+
+:::
+:::::
+
+
 
 
 ## Evaluating uncertainty as signal
-- The signal is not an inherrent feature to the plot
-  - Signal is whatever we are drawing inference 
+:::: {.incremental}
+
+- The signal is not an inherent feature of the plot
+- Signal is whatever we are drawing inference on
   - It is determined by the question you ask 
-- For example, asking "What is the variance of the plot" means you are drawing inference on $\sigma^2$, so $\sigma^2$  is your signal.
-  - If $\sigma^2$ was included to create noise, it is now *being evaluated as noise*
-- Asking direct questions about variance, turns it into signal
+- Asking direct questions about variance, probability, or trust turn the uncertainty into signal
+  - For example, asking "What is the variance of the plot" means you are drawing inference on $\sigma^2$, so $\sigma^2$  is your signal.
+  - *Irrespective of your intentions* in including $\sigma^2$ in the plot, it is now being *evaluated as signal*
 
+  
+:::: 
 
-
-## Measuring signal modulation
-- Measuring uncertainty as noise reauires us to measure signal modulation
-  - **Signal modulation**: statistical validity translates to perceptual ease
-- The higher the variance on an estimate, the harder that estimate is to extract from the plot
-
-![](images/signoise.jpeg){fig-align="center"}
-
-
-## What do we do?
-- Uncertainty is a bit like an optical illusion that you cant see the second you look directly at it
-- We need to figure out how to *measure* uncertainty without asking about it *directly*
-
-*(image = find some optical illustion)*
 
 ## Can we use, the lineup protocol?
-- Usually, yes
-- In this case, no
-- If a lineup protocol is a hypothesis test, the uncertainty visualisation is a confidence interval
+
+::::: columns
+::: {.column width="55%"}
+
+:::: {.incremental}
+
+- Usually, yes. For uncertainty visualisation? No
+- Think of it like this
+  - a lineup protocol is a visual hypothesis test
+  - an uncertainty visualisation is a generalised visual confidence interval
 - They are different forms of inference and cannot be used to validate each other
+  - *The details as to why are prickly, so we leave them for the paper*
+  
+:::: 
+
+:::
+
+::: {.column width="45%"}
+
+![](images/hypvsconf.jpeg){fig-align="center"}
+
+:::
+:::::
 
 
-## We only found this out halfway into the study...
+
+## We only realised this out halfway into the study...
 ![](images/zoom.jpeg){fig-align="center"}
+
+## So what does evaluating uncertainty as noise look like?
+::::: columns
+::: {.column width="55%"}
+
+:::: {.incremental}
+- Confidence intervals do not have the null built in, they require a question or null to be provided
+  - This explains why all existing studies use explicit methods
+- To avoid evaluating uncertainty as signal, our question can *ONLY* be about the estimate
+- Evaluate plots on how well they perform **signal modulation**
+  - Signal modulation: statistical validity translates to perceptual ease
+  - The higher the variance on an estimate, the harder that estimate is to extract from the plot
+- Measuring signal modulation is how we will measure uncertainty as a latent variable 
+  - i.e. without asking about it *directly* 
+
+:::: 
+
+:::
+
+::: {.column width="45%"}
+
+![](images/noisesignal2.jpeg){fig-align="center"}
+
+:::
+:::::
 
 
 ## Problems with explicit tests
@@ -435,11 +648,17 @@ We currently throw these motivations together, but are they the same?
 ::::: columns
 ::: {.column width="65%"}
 
+:::: {.incremental}
+
 - "Not everyone can become a great artist, but a great artist can come from anywhere." - Anton Ego (Ratatouille (2007))
 - "Not *everyone* need to be able to understand your plot, but a good plot can be understood by *anyone*. - Me (right here, right now)
   - Spatial autocorrelation = what you can understand 
   - Colour blindness = what you can literally see 
-- Any child should be able to see the pattern in your plot, even if they can't understand it
+- This is the main benefit of the lineup protocol
+  - It avoids conflating  *understanding* with *seeing*
+
+:::: 
+
 
 :::
 
@@ -452,19 +671,28 @@ We currently throw these motivations together, but are they the same?
 
 
 
-## We need an explicit evaluation method that...
-- Can measure a uncertainty as a latent variable (can't ask about it directly) and
-- Could be understood by a child 
+## Therefore we want an evaluation method that can...
+:::: {.incremental}
+
+- Works for choropleth maps 
+  - (my walktober plot)
+- Measures uncertainty as a latent variable 
+  - (by using signal modulation)
+- Is simple enough that it could be understood by a child 
+  - (so we evaluate seeing, not understanding)
+
+:::: 
+
 
 ## ... Wait 
   
 ::::: columns
 ::: {.column width="60%"}
-
+:::: {.incremental}
 - Um, isn't that just an Ishihara colour blind test?
 - Usually the latent variable is colour vision deficiency
-- This would work!
 
+::::
 
 :::
 
@@ -481,29 +709,6 @@ With uncertainty as a latent variable, our Ishihara test should behave like a hy
 
 ![](images/goodtest.jpeg){fig-align="center"}
 
-## How would this work exactly?
-*Stimuli explain image 1*
-
-## How would this work exactly?
-*Stimuli explain image 2*
-
-
-
-
-## The stimuli
-
-- Making Ishihara plates of the choropleth maps is super easy
-- Nick Tierney has a package called `ishihara` 
-
-![](images/ishihara.png){fig-align="center"}
-
-## The stimuli
-Which we use to make Ishihara uncertainty maps
-
-![](images/teaser2.png)
-
-
-
 ## Borrow power curve analysis {.smaller}
 
 ::::: columns
@@ -511,6 +716,7 @@ Which we use to make Ishihara uncertainty maps
 - Power curves can be used to compare hypothesis tests
   - The lineup protocol is often assessed using power curve analysis
 - We can do the same thing for our uncertainty visualisations.
+- As the variance increases, we would expect the number to be harder to see
 
 :::
 
@@ -522,10 +728,15 @@ Which we use to make Ishihara uncertainty maps
 :::::
 
 
+## How would this work exactly?
+
+![](images/constructstimuli.jpg){fig-align="center"}
+
+## How would this work exactly?
+![](images/constructstimuli2.jpg){fig-align="center"}
 
 
-
-## Data 
+## Assess this grid of distributions
 Grid of distance and variance of estimates
 
 ::::: columns
@@ -602,6 +813,7 @@ theory_data_plot |>
  theme(legend.position = "bottom",
        legend.direction = "horizontal",
        aspect.ratio=1) +
+ scale_colour_discrete(palette = "dark2") +
  labs(x = "Distance (D)",
       y = "Standard Deviation (V)",
       colour = "Correct number selected")
@@ -611,40 +823,272 @@ theory_data_plot |>
 :::
 :::::
 
-
-## Our hypothesis?
-- i.e. stuff I have been saying with no evidence
-  - 1. Choropleth maps and Bivariate value/variance maps are identical 
-  - 2. VSUP will do some signal suppression, but not in a way that is mathematically consistent with hypothesis test results
-  - 3. Pixel maps and Transparency maps should perform the same
-
-
-
-## Significance levels
+## Theoretical power curves
 ```{r}
-load("data/combined.rda")
+#| out-width: 100%
+# load simulated models
+load("data/glmer_models.rda")
+load("data/theoretical_models.rda")
+# load("data/average_fit.rda")
 
-studydata_av <- study_data |>
-  filter(correct_number == "No number visible") |>
-  group_by(plot_type) |>
-  summarise(alpha = length(correct[!correct])/length(correct))
-p1 <- combined |>
-  ggplot() +
-  geom_vline(xintercept = 0.05, colour="black", linetype = 2) +
-  geom_quasirandom(aes(x = alpha, y = plot_type, colour = plot_type), 
-                   alpha=0.01) +
-  geom_point(data=studydata_av, aes(x = alpha, 
-                                    y = plot_type, 
-                                    colour = plot_type), 
-             size=4) +
-  theme_classic() +
-  theme(aspect.ratio = 1,
-        legend.position = "none") +
-  labs(x = "Significance level",
-       y = "") 
+name_distance <- function(string) {
+  paste0("Distance: \n", string)
+}
 
-p1
+LINES <- c("T-test" = "longdash", "Moran's I" = "dotdash")
+
+
+theoretical_models |>
+  filter(!D==0, plot_type %in% map_type) |>
+  mutate(line_id = interaction(test, plot_type, correct_number)) |>
+  ggplot(aes(x=V, y=power_random, group = line_id, linetype = test)) +
+  geom_line(linewidth=0.3, colour = "black") +
+  theme_minimal()+
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8)) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
 ```
+
+
+# Which plots?
+
+## The choropleth map
+::::: columns
+::: {.column width="50%"}
+
+
+
+:::
+
+::: {.column width="50%"}
+ 
+![](images/chorostim.jpg)
+
+:::
+:::::
+
+
+## The bivariate palette map
+::::: columns
+::: {.column width="50%"}
+
+![](images/chorostim.jpg)
+
+:::
+
+::: {.column width="50%"}
+ 
+![](images/bivarstim.jpg)
+
+:::
+:::::
+
+## The VSUP map
+::::: columns
+::: {.column width="50%"}
+
+![](images/bivarstim.jpg)
+
+
+:::
+
+::: {.column width="50%"}
+ 
+![](images/vsupstim.jpg)
+
+:::
+:::::
+
+
+## The pixel map
+::::: columns
+::: {.column width="50%"}
+
+![](images/vsupstim.jpg)
+
+
+:::
+
+::: {.column width="50%"}
+ 
+![](images/pixelstim.jpg)
+
+:::
+:::::
+
+
+## The transparency map
+::::: columns
+::: {.column width="50%"}
+
+![](images/pixelstim.jpg)
+
+
+:::
+
+::: {.column width="50%"}
+ 
+![](images/transstim.jpg)
+
+:::
+:::::
+
+## Aside on `ggdibbler`
+A generalised uncertainty visualisation framework
+
+```{r}
+#| label: fig-illustration
+#| fig-align: center
+#| fig-height: 8
+#| fig-width: 15
+#| out-width: 90%
+#| fig-pos: "t"
+#| dev: "png"
+
+set.seed(10)
+# any data edits
+# GRAPH DF
+uncertain_edges <- tibble::tibble(from = sample(5, 20, TRUE),
+                                  to = sample(5, 20, TRUE),
+                                  weight = runif(20)) |>
+  dplyr::group_by(from, to) |>
+  dplyr::mutate(to = distributional::dist_sample(list(sample(seq(from=max(1,to-1), 
+                                                                 to = min(to+1, 5)), 
+                                                             replace = TRUE)))) |>
+  ungroup()
+graph_sample <- uncertain_edges |>
+  sample_expand(times=50) |>
+  as_tbl_graph()
+jitter = position_jitter(width=0.03, height=0.03)
+
+# geom_sf data
+Aust_map <- ozmap_data(data = "states", quiet = TRUE) |>
+  group_by(NAME) |>
+  mutate(value = dist_normal(mu = rnorm(1, 30, 10), rexp(1, 0.3))) |>
+  ungroup()
+
+
+ppie <- ggplot(uncertain_mpg, aes(x="")) +
+  geom_bar_sample(aes(fill = class), times = 50, alpha=1.2/50,
+                  position = "stack_identity",
+                  width = 1)+
+  theme_void() +
+  scale_fill_gdocs() +
+  coord_polar(theta = "y") +
+  theme(legend.position="none",
+        aspect.ratio=1) +
+  ggtitle("b. pie chart")
+
+psf <- ggplot(data = Aust_map, aes(geometry = geometry, fill = value)) + 
+  geom_sf_sample(times = 300, linewidth = 0) +
+  #theme_void() +
+  theme_map() +
+  theme(legend.position="none") +
+  geom_sf(fill = NA, linewidth = 0.5, colour = "black") +
+  scale_fill_acton() + 
+  scale_x_continuous_distribution(limits = c(111,155)) +
+  ggtitle("d. choropleth map")
+
+pgraph <- ggraph(graph_sample, weights = weight) + 
+  geom_edge_link(aes(group=drawID), position=jitter, alpha=0.01, 
+                 colour = "#cc3311") + 
+  theme_void() +
+  theme(aspect.ratio = 1) +
+  geom_node_point(size=3) +
+  theme(aspect.ratio = 1, legend.position="none") +
+  ggtitle("f. network diagram")
+
+pcount <- ggplot(uncertain_mpg, aes(cty, hwy)) +
+  geom_count_sample(alpha=0.05, times=30, colour = "#FD9A44") +
+  theme_few() +
+  theme(aspect.ratio = 1, legend.position="none") +
+  ggtitle("e. bubble chart")
+
+phist <- ggplot(smaller_uncertain_diamonds, aes(carat, fill = cut)) +
+  geom_histogram_sample(position="stack_dodge", alpha=1, times=30) +
+  theme_few() +
+  scale_fill_discreterainbow() +
+  theme(aspect.ratio = 1, legend.position="none") +
+  ggtitle("c. histogram")
+
+pline <- ggplot(mtcars, aes(wt, mpg)) + 
+  geom_abline_sample(intercept = dist_normal(37, 1.8), colour = "#9970AB",
+                     slope = dist_normal(-5, 0.56), 
+                     times=30, alpha=0.5) +
+  geom_point(colour = "black") + 
+  theme_few() +
+  theme(aspect.ratio=1, legend.position = "none") +
+  ggtitle("a. line plot")
+
+pline +  ppie + phist + psf  + pcount + pgraph 
+```
+
+## Mathematical findings of `ggdibbler`
+According to the formalisation, the information in the pixel and transparency map should be the same
+
+```{r}
+
+p1 <- ggplot(uncertain_mpg, aes(class)) + 
+  geom_bar_sample(aes(fill = drv),
+                  position = "stack_dodge")+
+  theme_void() +
+  theme(legend.position="none", aspect.ratio=1)+
+  scale_fill_discrete_sequential(palette = "viridis") +
+  ggtitle("Pixelation")
+
+p2 <- ggplot(uncertain_mpg, aes(class)) + 
+  geom_bar_sample(aes(fill = drv), alpha=0.15,
+                  position = "stack_identity")+
+  theme_void() +
+  theme(legend.position="none", aspect.ratio=1)+
+  scale_fill_discrete_sequential(palette = "viridis") +
+  ggtitle("Transparency")
+
+
+
+p1 | p2
+
+```
+
+## The transparency map
+::::: columns
+::: {.column width="50%"}
+
+![](images/pixelstim.jpg)
+
+
+:::
+
+::: {.column width="50%"}
+ 
+![](images/transstim.jpg)
+
+:::
+:::::
+
+## Hypothesis
+:::: {.incremental}
+
+This stimuli design leads to three hypothesis
+
+1. The Choropleth and Bivariate maps will have *no signal modulation*
+2. The VSUP map *will have signal modulation*, but not in a way that is statistically sensible 
+2. The pixel and transparency maps will be the same in how well they perform *signal modulation* and should *align with standard hypothesis tests*
+
+::::
+
+# Results
+
 
 ## Choropleth - data
 ::::: columns
@@ -668,6 +1112,7 @@ filter(plot_type == "Choropleth") |>
  theme(legend.position = "bottom",
        legend.direction = "horizontal",
        aspect.ratio=1) +
+ scale_colour_discrete(palette = "dark2") +
  labs(x = "Distance (D)",
       y = "Standard Deviation (V)",
       colour = "Correct number selected") +
@@ -683,16 +1128,6 @@ filter(plot_type == "Choropleth") |>
 
 ```{r}
 #| out-width: 100%
-# load simulated models
-load("data/glmer_models.rda")
-load("data/theoretical_models.rda")
-# load("data/average_fit.rda")
-
-name_distance <- function(string) {
-  paste0("Distance: \n", string)
-}
-
-LINES <- c("T-test" = "longdash", "Moran's I" = "dotdash")
 
 map_type = "Choropleth"
 pcol = gpal[1]
@@ -709,6 +1144,7 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
@@ -744,6 +1180,7 @@ filter(plot_type == "Bivariate") |>
  geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
              aes(colour = correct_original)) +
  theme_bw() +
+  scale_colour_discrete(palette = "dark2") +
  theme(legend.position = "bottom",
        legend.direction = "horizontal",
        aspect.ratio=1) +
@@ -776,6 +1213,7 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
@@ -812,6 +1250,7 @@ filter(plot_type == "VSUP") |>
  geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
              aes(colour = correct_original)) +
  theme_bw() +
+  scale_colour_discrete(palette = "dark2") +
  theme(legend.position = "bottom",
        legend.direction = "horizontal",
        aspect.ratio=1) +
@@ -845,6 +1284,7 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
@@ -880,6 +1320,7 @@ filter(plot_type == "Pixel") |>
  geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
              aes(colour = correct_original)) +
  theme_bw() +
+  scale_colour_discrete(palette = "dark2") +
  theme(legend.position = "bottom",
        legend.direction = "horizontal",
        aspect.ratio=1) +
@@ -912,6 +1353,7 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
@@ -948,6 +1390,7 @@ filter(plot_type == "Transparency") |>
  geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
              aes(colour = correct_original)) +
  theme_bw() +
+  scale_colour_discrete(palette = "dark2") +
  theme(legend.position = "bottom",
        legend.direction = "horizontal",
        aspect.ratio=1) +
@@ -965,7 +1408,7 @@ filter(plot_type == "Transparency") |>
 ```{r}
 #| out-width: 100%
 map_type = "Transparency"
-pcol = gpal[4]
+pcol = gpal[5]
 
 glmer_models |>
   filter(!D==0,
@@ -979,6 +1422,7 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
@@ -995,23 +1439,38 @@ glmer_models |>
 ```
 
 
-## To sum up?
-- I was right, never verify your claims, they will just prove what you already thought based on vibes
+##  Returning to our hypothesis
+:::: {.incremental}
 
+1. The Choropleth and Bivariate maps will have no signal modulation: **Confirmed**
+2. The VSUP map will have signal modulation, but not in a way that is statistically sensible: **Confirmed**  
+2. The pixel and transparency maps will be the same in how well they perform signal modulation and should align with standard hypothesis tests: **Confirmed**
 
-
-
+::::
 
 
 
 # Conclusion
 
+## What did we learn?
+:::: {.incremental}
 
-## Acknowledgements
--   My supervisors: Di Cook, Susan Vanderplas, and Sarah Goodwin
--   Good ideas: Mitch O'Hara-Wild, Cynthia Huang, Emily Robbinson
--   AEMO Zema Energy Scholarship
--   Australian RTP Stipend
--   Numbat Hackathon (for the walktober data)
+- It is important to know if you are evaluating uncertainty as signal or noise
+- Power curve analysis is required to assess uncertainty as signal
+- Visualising distributions as samples is the only approach that leads to sensible signal modulation
+
+::::
+
+
+
+## Want more? Read our paper here!
+![](images/paperscreenshot.png){fig-align="center"}
+
+## If want more work on signal modulation...
+This paper was the third chapter of my PhD, and the third part of a trillogy on this approach to uncertainty visualisation!
+
+![](images/papers.png){fig-align="center"}
+
+
 
 ## References
