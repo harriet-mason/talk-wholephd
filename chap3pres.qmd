@@ -1,6 +1,40 @@
 ---
 title: "Colour Blinded by the Noise"
-author: "Harriet Mason, Rachel Rogers, Allison Kleffner, Dianne Cook"
+author:
+  - name: Harriet Mason
+    url: https://harrietmason.netlify.app/
+    orcid: 0009-0007-4568-8215
+    email:  harriet.m.mason@gmail.com
+    affiliation:
+    - name: Monash University
+      department: Department of Econometrics and Business Statistics
+      city: Melbourne
+      country: Australia
+  - name: Rachel Rogers
+    orcid: 0000-0002-4145-9630
+    email: Rachel.Rogers@uts.edu.au
+    affiliation:
+    - name: University of Technology Sydney
+      department: School of Mathematics and Physical Sciences
+      city: Sydney
+      country: Australia
+  - name: Alison Kleffner
+    orcid: 0009-0004-1000-5232
+    email: alisonkleffner@creighton.edu
+    affiliation:
+    - name: Creighton University
+      department: Department of Mathematics
+      city: Omaha
+      country: United States
+  - name: Dianne Cook
+    url: https://www.dicook.org/
+    orcid: 0000-0002-3813-7155
+    email:  dicook@monash.edu
+    affiliation:
+    - name: Monash University
+      department: Department of Econometrics and Business Statistics
+      city: Melbourne
+      country: Australia
 institute: "Monash University, Australia"
 format: 
   revealjs: 
