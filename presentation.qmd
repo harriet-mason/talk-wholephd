@@ -47,6 +47,8 @@ library(lme4)
 library(car)
 library(janitor)
 library(naniar)
+library(tidygraph)
+library(ggraph)
 
 # set theme?
 # theme_set( theme_gdocs() + 
@@ -958,12 +960,12 @@ Breaking the data-visual connection is shockingly easy
   
 ::: 
 
-
+![](images/uncertainletters.png){fig-align="center"}
 
 ```{r}
-#| fig-height: 3
-#| fig-width: 8
-#| fig-align: center
+#| eval: false
+#| include: false
+#| echo: false
 
 set.seed(10)
 textdata <- expand_grid(x = c(1,2,3,4,5), y = 1) |>
@@ -977,7 +979,7 @@ textdata <- expand_grid(x = c(1,2,3,4,5), y = 1) |>
 
 ggplot(textdata, aes(x=x, y=y, lab=z2)) +
   geom_text_sample(aes(label = after_stat(lab)), colour = "steelblue",
-                   size=20, alpha=1/30, times=30) +
+                   size=30, alpha=1/30, times=30) +
   theme_void() +
   theme(aspect.ratio = 1, legend.position = "none") 
 ```
@@ -1548,35 +1550,62 @@ theory_data_plot <- bigpvalues |>
  rename("correct_original" = reject)
 ```
 
-## Am I bad at my job?{.smaller}
-- After making `ggdibbler` I just went around saying these plots worked
-- My primary evidence being "bro look at it, we all have eyes"
-- Apparently I can't just say stuff without any evidence
+
+## How do we evaluate uncertainty as signal? {.smaller}
 
 
-## Should you start a perceptual experiment from scratch three months before your PhD submission deadline and also forget to tell your main advisor about it until you are like a month in? 
-- Sure, why not (If you have Rachel and Alison's help)
+:::: {.incremental}
 
-## How to test the plots
-- There are two ways to evaluate a plot [@Vanderplas2020]
+- Signal vs noise is not an inherent feature of the plot
+- It is whatever we are drawing inference on
+  - That is, it is determined by the question you ask 
+- Therefore asking direct questions about variance or probability will turn the uncertainty into signal
+  - This will occur regardless of the reason the plot was made
+  
+:::: 
 
-  - Explicit: "What is the spatial correlation in this plot?"
-  - Implicit: "Which is the odd one out"
+## Most research evaluates uncertainty as signal{.smaller}
+
+![](images/signalnoisestudy.jpg){fig-align="center"}
 
 
-## Prefer to use implicit
-There are two issues with using explicit testing
-1. Implicit tests are more aligned with EDA
-2. The Ratatouille rule
 
-## The Ratatouille rule{.smaller}
+## How do we evaluate it as noise?
+::::: columns
+::: {.column width="55%"}
+
+:::: {.incremental}
+- To evaluate uncertainty as noise, we will see how well they perform **signal modulation**
+  - The higher the variance on an estimate, the harder that estimate is to extract from the plot
+- This is a perceptual property of our plot
+
+:::: 
+
+:::
+
+::: {.column width="45%"}
+
+![](images/noisesignal2.jpeg){fig-align="center"}
+
+:::
+:::::
+
+
+## My Ratatouille rule{.smaller}
 
 ::::: columns
 ::: {.column width="65%"}
 
+:::: {.incremental}
+- Signal modulation is about seeing
+  - It is important to avoid conflating  *understanding* with *seeing*
 - "Not everyone can become a great artist, but a great artist can come from anywhere." - Anton Ego (Ratatouille (2007))
 - "Not *everyone* need to be able to understand your plot, but a good plot can be understood by *anyone*. - Me (right here, right now)
-  - Colour blind friendly palette VS Spatial autocorrelation
+  - Should not be limited by inherent ability (e.g. colour blindness)
+  - Can be limited by actual skill/knowledge (e.g. what does spatial autocorrelation look like?) 
+
+:::: 
+
 
 :::
 
@@ -1588,65 +1617,30 @@ There are two issues with using explicit testing
 :::::
 
 
-## So, the lineup protocol?
-- Remember the two sources of uncertainty in a graphic?
-  1. The data itself (i.e. we are visualising estimates) 
-  2. The conclusions we draw from the plot (i.e. visual inference)
-- Visual inference tests the second. We only have the first.
 
+## Therefore we want an evaluation method that can...
 
-## Aside: pour one out for Alison and Rachel
-![](images/zoom.jpeg){fig-align="center"}
+:::: {.incremental}
 
+1. Work for choropleth maps 
+2. Measures the effect of a latent variable
+3. Is simple enough that it could be understood by a child 
 
+:::: 
 
-## Message from Susan
-::: {.chat}
-:::: {.speaker-2}
-Hey
-::::
-:::
-
-## Context: Who is Susan?
-![](images/ducks.jpeg){fig-align="center"}
-
-
-## Message from Susan
-::: {.chat}
-:::: {.speaker-2}
-Hey
-::::
-
-:::: {.fragment .speaker-2}
-Are you doing OK? I just spoke to Rachel and Alison at the Graphics Group meeting, and they are worried about you after your meeting today.
-::::
-
-:::: {.fragment .speaker-1}
-RIP I thought that meeting went well. Whoops.
-::::
-
-:::: {.fragment .speaker-2}
-Yup I thought so. I told them you are just like that.
-::::
-
-:::
-
-
-## We need an explicit evaluation method that...
-- Can measure a latent variable (uncertainty)
-- Could be understood by a child 
-- Specifically tests if a pattern is visible 
 
 ## ... Wait 
   
 ::::: columns
 ::: {.column width="60%"}
 
-- Thats just an Ishihara colourblind test
-- Usually the latent variable is colour vision deficiency
-- In this experiment we will make the latent variable uncertainty.
-- OK this will work.
+:::: {.incremental}
+- Isn't that just an Ishihara colour blind test?
+  - Choropleth map
+  - Measures latent variable (colour vision deficiency)
+  - Is understood by children
 
+::::
 
 :::
 
@@ -1657,43 +1651,185 @@ Yup I thought so. I told them you are just like that.
 :::
 :::::
 
+## How would this work exactly?
+
+![](images/constructstimuli.jpg){fig-align="center"}
+
+
+## Then we add uncertainty
+![](images/constructstimuli2.jpg){fig-align="center"}
+
+## The choropleth map
+
+![](images/chorostim2.jpg){fig-align="center"}
+
+## Hypothesis 
+
+**1. The choropleth map will not perform signal modulation.**
+
+
+## The bivariate map
+
+![](images/bivarstim2.jpg){fig-align="center"}
+
+## Hypothesis 
+1. The choropleth map will not perform signal modulation
+
+**2. ...and neither will the bivariate map.**
+
+
+## The VSUP map
+Value suppressing uncertainty palette (VSUP) [@Correll2018]
+ 
+![](images/vsupstim2.jpg){fig-align="center"}
+
+## Hypothesis 
+1. The choropleth map will not perform signal modulation
+2. ...and neither will the bivariate map.
+
+**3. The VSUP map will perform signal modulation, but not in a way that is statistically sensible**
+
+
+## The pixel map
+ 
+![](images/pixelstim2.jpg){fig-align="center"}
+
+## Hypothesis 
+1. The choropleth map will not perform signal modulation
+2. ...and neither will the bivariate map.
+3. The VSUP map will perform signal modulation, but not in a way that is statistically sensible
+
+**4. The pixel map will perform sensible signal modulation**
+
+## How to represent using one colour?
+A flexible uncertainty visualisation framework `ggdibbler`
+
+```{r}
+#| fig-align: center
+#| fig-height: 8
+#| fig-width: 15
+#| out-width: 90%
+#| fig-pos: "t"
+#| dev: "png"
+
+set.seed(10)
+# any data edits
+# GRAPH DF
+uncertain_edges <- tibble::tibble(from = sample(5, 20, TRUE),
+                                  to = sample(5, 20, TRUE),
+                                  weight = runif(20)) |>
+  dplyr::group_by(from, to) |>
+  dplyr::mutate(to = distributional::dist_sample(list(sample(seq(from=max(1,to-1), 
+                                                                 to = min(to+1, 5)), 
+                                                             replace = TRUE)))) |>
+  ungroup()
+graph_sample <- uncertain_edges |>
+  sample_expand(times=50) |>
+  as_tbl_graph()
+jitter = position_jitter(width=0.03, height=0.03)
+
+# geom_sf data
+Aust_map <- ozmap_data(data = "states", quiet = TRUE) |>
+  group_by(NAME) |>
+  mutate(value = dist_normal(mu = rnorm(1, 30, 10), rexp(1, 0.3))) |>
+  ungroup()
+
+
+ppie <- ggplot(uncertain_mpg, aes(x="")) +
+  geom_bar_sample(aes(fill = class), times = 50, alpha=1.2/50,
+                  position = "stack_identity",
+                  width = 1)+
+  theme_void() +
+  scale_fill_gdocs() +
+  coord_polar(theta = "y") +
+  theme(legend.position="none",
+        aspect.ratio=1) +
+  ggtitle("b. pie chart")
+
+psf <- ggplot(data = Aust_map, aes(geometry = geometry, fill = value)) + 
+  geom_sf_sample(times = 300, linewidth = 0) +
+  #theme_void() +
+  theme_map() +
+  theme(legend.position="none") +
+  geom_sf(fill = NA, linewidth = 0.5, colour = "black") +
+  scale_fill_acton() + 
+  scale_x_continuous_distribution(limits = c(111,155)) +
+  ggtitle("d. choropleth map")
+
+pgraph <- ggraph(graph_sample, weights = weight) + 
+  geom_edge_link(aes(group=drawID), position=jitter, alpha=0.01, 
+                 colour = "#cc3311") + 
+  theme_void() +
+  theme(aspect.ratio = 1) +
+  geom_node_point(size=3) +
+  theme(aspect.ratio = 1, legend.position="none") +
+  ggtitle("f. network diagram")
+
+pcount <- ggplot(uncertain_mpg, aes(cty, hwy)) +
+  geom_count_sample(alpha=0.05, times=30, colour = "#FD9A44") +
+  theme_few() +
+  theme(aspect.ratio = 1, legend.position="none") +
+  ggtitle("e. bubble chart")
+
+phist <- ggplot(smaller_uncertain_diamonds, aes(carat, fill = cut)) +
+  geom_histogram_sample(position="stack_dodge", alpha=1, times=30) +
+  theme_few() +
+  scale_fill_discreterainbow() +
+  theme(aspect.ratio = 1, legend.position="none") +
+  ggtitle("c. histogram")
+
+pline <- ggplot(mtcars, aes(wt, mpg)) + 
+  geom_abline_sample(intercept = dist_normal(37, 1.8), colour = "#9970AB",
+                     slope = dist_normal(-5, 0.56), 
+                     times=30, alpha=0.5) +
+  geom_point(colour = "black") + 
+  theme_few() +
+  theme(aspect.ratio=1, legend.position = "none") +
+  ggtitle("a. line plot")
+
+pline +  ppie + phist + psf  + pcount + pgraph 
+```
+
+## In `ggdibbler`
+Mathematical information in a pixel and transparency map should be the same
+
+```{r}
+
+p1 <- ggplot(uncertain_mpg, aes(class)) + 
+  geom_bar_sample(aes(fill = drv),
+                  position = "stack_dodge")+
+  theme_void() +
+  theme(legend.position="none", aspect.ratio=1)+
+  scale_fill_discrete_sequential(palette = "viridis") +
+  ggtitle("Pixelation")
+
+p2 <- ggplot(uncertain_mpg, aes(class)) + 
+  geom_bar_sample(aes(fill = drv), alpha=0.15,
+                  position = "stack_identity")+
+  theme_void() +
+  theme(legend.position="none", aspect.ratio=1)+
+  scale_fill_discrete_sequential(palette = "viridis") +
+  ggtitle("Transparency")
 
 
 
-## Will still use the power curve analysis{.smaller}
+p1 | p2
 
-::::: columns
-::: {.column width="40%"}
+```
 
-- Lineups can be compared to power curves
-- We can do the same here 
-:::
+## The transparency map
+ 
+![](images/transstim2.jpg){fig-align="center"}
 
-::: {.column width="60%"}
+## Hypothesis 
+1. The choropleth map will not perform signal modulation
+2. ...and neither will the bivariate map.
+3. The VSUP map will perform signal modulation, but not in a way that is statistically sensible
+4. The pixel map will perform sensible signal modulation
 
-![](images/powercurve.jpeg){fig-align="center"}
+**5. ...and so will the transparency map**
 
-:::
-:::::
-
-
-
-## The stimuli
-- Making Ishihara plates of the choropleth maps is super easy
-- Nick Tierney has a package called `ishihara` 
-
-![](images/ishihara.png){fig-align="center"}
-
-## The stimuli
-Which we use to make Ishihara uncertainty maps
-
-![](images/teaser2.png)
-
-## Data 
-Grid of distance and variance of estimates
-
-::::: columns
-::: {.column width="50%"}
+## The underlying data
 
 ```{r}
 
@@ -1746,105 +1882,39 @@ parent_dists |>
   theme(aspect.ratio = 1, 
         text = element_text(size = 15),
         panel.grid = element_blank(),
-        axis.text = element_blank(),
-        legend.position = "bottom")
+        axis.text = element_blank())
 
 ```
 
-:::
 
-::: {.column width="50%"}
+## A visual hypothesis test
+Want to minimise type I and II error
 
-```{r}
-# make into plot
-theory_data_plot |>
- select(D, V, correct_original, plot_type) |>
- ggplot(aes(x=D, y=V))+
- geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.3,
-             aes(colour = correct_original)) +
- theme_bw() +
- theme(legend.position = "bottom",
-       legend.direction = "horizontal",
-       aspect.ratio=1) +
- labs(x = "Distance (D)",
-      y = "Standard Deviation (V)",
-      colour = "Correct number selected")
+![](images/goodtest.jpeg){fig-align="center"}
 
-```
+## Power curves
 
-:::
-:::::
-
-
-## Our hypothesis?
-- i.e. stuff I have been saying with no evidence
-  - 1. Choropleth maps and Bivariate value/variance maps are identical 
-  - 2. VSUP will do some signal suppression, but not in a way that is mathematically consistent with hypothesis test results
-  - 3. Pixel maps and Transparency maps should perform the same
-
-
-
-## Significance levels
-```{r}
-load("data/combined.rda")
-
-studydata_av <- study_data |>
-  filter(correct_number == "No number visible") |>
-  group_by(plot_type) |>
-  summarise(alpha = length(correct[!correct])/length(correct))
-p1 <- combined |>
-  ggplot() +
-  geom_vline(xintercept = 0.05, colour="black", linetype = 2) +
-  geom_quasirandom(aes(x = alpha, y = plot_type, colour = plot_type), 
-                   alpha=0.01) +
-  geom_point(data=studydata_av, aes(x = alpha, 
-                                    y = plot_type, 
-                                    colour = plot_type), 
-             size=4) +
-  theme_classic() +
-  theme(aspect.ratio = 1,
-        legend.position = "none") +
-  labs(x = "Significance level",
-       y = "") 
-
-p1
-```
-
-## Choropleth - data
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="40%"}
 
-![](images/choro_5x5.png){fig-align="center"}
+:::: {.incremental}
+- Hypothesis tests evaluated using power curves
+- As the variance increases, we would expect the number to be harder to see
+
+::::
 
 :::
 
-::: {.column width="50%"}
+::: {.column width="60%"}
 
-```{r}
-# make into plot
-study_data |>
-filter(plot_type == "Choropleth") |>
- select(D, V, correct_original, plot_type) |>
- ggplot(aes(x=D, y=V))+
- geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
-             aes(colour = correct_original)) +
- theme_bw() +
- theme(legend.position = "bottom",
-       legend.direction = "horizontal",
-       aspect.ratio=1) +
- labs(x = "Distance (D)",
-      y = "Standard Deviation (V)",
-      colour = "Correct number selected") +
-  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
-
-```
+![](images/powercurve.jpeg){fig-align="center"}
 
 :::
 :::::
 
 
-## Choropleth - power curves
 
+## Theoretical power curves
 ```{r}
 #| out-width: 100%
 # load simulated models
@@ -1857,6 +1927,54 @@ name_distance <- function(string) {
 }
 
 LINES <- c("T-test" = "longdash", "Moran's I" = "dotdash")
+
+
+theoretical_models |>
+  filter(!D==0) |>
+  mutate(line_id = interaction(test, plot_type, correct_number)) |>
+  ggplot(aes(x=V, y=power_random, group = line_id, linetype = test)) +
+  geom_line(linewidth=0.3, colour = "black") +
+  theme_minimal()+
+  theme(legend.position="top", 
+        legend.direction ="horizontal",
+        text=element_text(size=10), 
+        strip.text.x=element_text(size=8),
+        strip.text.y=element_text(size=8),
+        legend.text = element_text(size=8),
+        aspect.ratio = 1) +
+  guides(colour = "none") + 
+  facet_wrap(~D, nrow = 1,
+             labeller = labeller(D = name_distance)) +
+  labs(x = "Standard Deviation", y = "Power",
+       linetype = "Classical Test") +
+  scale_linetype_manual(values = LINES) 
+
+```
+
+
+
+
+## Study details
+:::: {.incremental}
+- 137 Prolific users completed the study
+- Took a median time of ~8 minutes to do all 125 plots
+::::
+
+![](images/screenshot.png){fig-align="center"}
+
+
+
+
+## Choropleth - stimuli
+
+![](images/choro_5x5.png){fig-align="center"}
+
+
+
+## Choropleth - power curves
+
+```{r}
+#| out-width: 100%
 
 map_type = "Choropleth"
 pcol = gpal[1]
@@ -1873,12 +1991,14 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
         strip.text.x=element_text(size=8),
         strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
+        legend.text = element_text(size=8),
+        aspect.ratio = 1) +
   guides(colour = "none") + 
   facet_wrap(~D, nrow = 1,
              labeller = labeller(D = name_distance)) +
@@ -1889,37 +2009,14 @@ glmer_models |>
 ```
 
 
-## Bivariate - data
-::::: columns
-::: {.column width="50%"}
+## Hypothesis check
+1. The choropleth map will not perform signal modulation **(Confirmed)**
+
+
+## Bivariate - stimuli
 
 ![](images/bivar_5x5.png){fig-align="center"}
 
-:::
-
-::: {.column width="50%"}
-
-```{r}
-# make into plot
-study_data |>
-filter(plot_type == "Bivariate") |>
- select(D, V, correct_original, plot_type) |>
- ggplot(aes(x=D, y=V))+
- geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
-             aes(colour = correct_original)) +
- theme_bw() +
- theme(legend.position = "bottom",
-       legend.direction = "horizontal",
-       aspect.ratio=1) +
- labs(x = "Distance (D)",
-      y = "Standard Deviation (V)",
-      colour = "Correct number selected") +
-  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
-
-```
-
-:::
-:::::
 
 ## Bivariate - power curves
 
@@ -1940,12 +2037,14 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
         strip.text.x=element_text(size=8),
         strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
+        legend.text = element_text(size=8),
+        aspect.ratio = 1) +
   guides(colour = "none") + 
   facet_wrap(~D, nrow = 1,
              labeller = labeller(D = name_distance)) +
@@ -1955,39 +2054,15 @@ glmer_models |>
 
 ```
 
+## Hypothesis check
+1. The choropleth map will not perform signal modulation **(Confirmed)**
+2. ... and neither will the bivariate map. **(Confirmed)**
 
-## VSUP - data
 
-::::: columns
-::: {.column width="50%"}
+## VSUP - stimuli
+
 
 ![](images/vsup_5x5.png){fig-align="center"}
-
-:::
-
-::: {.column width="50%"}
-
-```{r}
-# make into plot
-study_data |>
-filter(plot_type == "VSUP") |>
- select(D, V, correct_original, plot_type) |>
- ggplot(aes(x=D, y=V))+
- geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
-             aes(colour = correct_original)) +
- theme_bw() +
- theme(legend.position = "bottom",
-       legend.direction = "horizontal",
-       aspect.ratio=1) +
- labs(x = "Distance (D)",
-      y = "Standard Deviation (V)",
-      colour = "Correct number selected") +
-  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
-
-```
-
-:::
-:::::
 
 
 ## VSUP - power curves
@@ -2009,12 +2084,14 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
         strip.text.x=element_text(size=8),
         strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
+        legend.text = element_text(size=8),
+        aspect.ratio = 1) +
   guides(colour = "none") + 
   facet_wrap(~D, nrow = 1,
              labeller = labeller(D = name_distance)) +
@@ -2024,38 +2101,16 @@ glmer_models |>
 
 ```
 
-## Pixel - data
+## Hypothesis check
+1. The choropleth map will not perform signal modulation **(Confirmed)**
+2. ... and neither will the bivariate map. **(Confirmed)**
+3. The VSUP map will perform signal modulation, but not in a way that is statistically sensible **(Confirmed)**
 
-::::: columns
-::: {.column width="50%"}
+
+## Pixel - stimuli
 
 ![](images/pix_5x5.png){fig-align="center"}
 
-:::
-
-::: {.column width="50%"}
-
-```{r}
-# make into plot
-study_data |>
-filter(plot_type == "Pixel") |>
- select(D, V, correct_original, plot_type) |>
- ggplot(aes(x=D, y=V))+
- geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
-             aes(colour = correct_original)) +
- theme_bw() +
- theme(legend.position = "bottom",
-       legend.direction = "horizontal",
-       aspect.ratio=1) +
- labs(x = "Distance (D)",
-      y = "Standard Deviation (V)",
-      colour = "Correct number selected") +
-  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
-
-```
-
-:::
-:::::
 
 ## Pixel - power curves
 
@@ -2076,12 +2131,14 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
         strip.text.x=element_text(size=8),
         strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
+        legend.text = element_text(size=8),
+        aspect.ratio = 1) +
   guides(colour = "none") + 
   facet_wrap(~D, nrow = 1,
              labeller = labeller(D = name_distance)) +
@@ -2091,45 +2148,23 @@ glmer_models |>
 
 ```
 
-## Transparency - data
+## Hypothesis check
+1. The choropleth map will not perform signal modulation **(Confirmed)**
+2. ... and neither will the bivariate map. **(Confirmed)**
+3. The VSUP map will perform signal modulation, but not in a way that is statistically sensible **(Confirmed)**
+4. The pixel map will perform sensible signal modulation **(Confirmed)**
 
 
-::::: columns
-::: {.column width="50%"}
+## Transparency - stimuli
 
 ![](images/trans_5x5.png){fig-align="center"}
 
-:::
-
-::: {.column width="50%"}
-
-```{r}
-# make into plot
-study_data |>
-filter(plot_type == "Transparency") |>
- select(D, V, correct_original, plot_type) |>
- ggplot(aes(x=D, y=V))+
- geom_jitter(height=0.3, width=0.3, alpha=0.5, size=0.7,
-             aes(colour = correct_original)) +
- theme_bw() +
- theme(legend.position = "bottom",
-       legend.direction = "horizontal",
-       aspect.ratio=1) +
- labs(x = "Distance (D)",
-      y = "Standard Deviation (V)",
-      colour = "Correct number selected") +
-  guides(color = guide_legend(override.aes = list(size = 2, alpha = 1))) 
-
-```
-
-:::
-:::::
 
 ## Transparency - power curves
 ```{r}
 #| out-width: 100%
 map_type = "Transparency"
-pcol = gpal[4]
+pcol = gpal[5]
 
 glmer_models |>
   filter(!D==0,
@@ -2143,12 +2178,14 @@ glmer_models |>
               mutate(line_id = interaction(test, plot_type, correct_number)),
             aes(y=power_random, linetype = test),
             linewidth=0.3, colour = "black") +
+  theme_minimal()+
   theme(legend.position="top", 
         legend.direction ="horizontal",
         text=element_text(size=10), 
         strip.text.x=element_text(size=8),
         strip.text.y=element_text(size=8),
-        legend.text = element_text(size=8)) +
+        legend.text = element_text(size=8),
+        aspect.ratio = 1) +
   guides(colour = "none") + 
   facet_wrap(~D, nrow = 1,
              labeller = labeller(D = name_distance)) +
@@ -2159,16 +2196,34 @@ glmer_models |>
 ```
 
 
-## To sum up?
-- I was right, never verify your claims, they will just prove what you already thought based on vibes
-
-
-
-
+## Hypothesis check
+1. The choropleth map will not perform signal modulation **(Confirmed)**
+2. ... and neither will the bivariate map. **(Confirmed)**
+3. The VSUP map will perform signal modulation, but not in a way that is statistically sensible **(Confirmed)**
+4. The pixel map will perform sensible signal modulation **(Confirmed)**
+5. ... and so will the transparency map **(Confirmed)**
 
 
 
 # Conclusion
+
+
+## What did we learn?
+:::: {.incremental}
+
+- Uncertainty is a by-product of inference
+- Uncertainty should act as noise (not signal) in a visualisation
+- Visualisations with these properties can be made in `ggdibbler` using `ggplot2` syntax
+
+::::
+
+
+
+## Want more? 
+Or read the full signal modulation trilogy (my PhD thesis)...
+
+![](images/papers.png){fig-align="center"}
+
 
 
 ## Acknowledgements
